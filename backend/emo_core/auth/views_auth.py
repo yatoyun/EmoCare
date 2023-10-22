@@ -1,16 +1,30 @@
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import status, views
 from rest_framework.response import Response
-from .serializers_auth import UserSerializer, LoginSerializer
+from .serializers_auth import LoginSerializer
+from ..serializers import UserModelSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from ..models import TempRegister
 
 class RegisterView(views.APIView):
     # ... (same as before)
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        # validate token
+        token = request.data.get('token')
+        temp_record = TempRegister.objects.filter(token=token).first()
+        if not temp_record:
+            return Response({"message": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # create user
+        serializer = UserModelSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            user.line_user_id = temp_record.line_user_id
+            user.save() 
+
+            # Delete the temp_record as it's no longer needed
+            temp_record.delete()
+
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),

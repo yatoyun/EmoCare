@@ -1,24 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import api, { setAuthToken } from '../api/api';
 
 const Register = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const [token, setToken] = useState(null);
+
+    const location = useLocation();
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const tokenFromUrl = urlParams.get('token');
+        setToken(tokenFromUrl);
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('register/', { username, password });
-            if (response.status === 200) {
+            const response = await api.post('register/', { username, password, token });
+            if (response.status === 201) {
                 const { access } = response.data;
                 localStorage.setItem('token', access);
                 setAuthToken(access);
                 console.log('Registered in successfully');
+                setMessage('Registered in successfully');
             }
         } catch (error) {
             if (error.response && error.response.status === 400) {
                 // ユーザー名が既に存在する場合
+                console.log(error.response.data);
                 setMessage('A user with that username already exists.');
             } else {
                 // その他のエラー
