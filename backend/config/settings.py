@@ -29,7 +29,9 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+
+# test
+ALLOWED_HOSTS = [".ngrok.io", 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -45,7 +47,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'emo_core',
 ]
+
+AUTH_USER_MODEL = 'emo_core.UserModel'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
