@@ -18,7 +18,7 @@ class UserModelSerializer(serializers.ModelSerializer):
 class EmotionDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmotionData
-        fields = ('id', 'user', 'emotion_score', 'emotion_magnitude', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'emotion_score', 'emotion_magnitude', 'created_at')
         read_only_fields = ('user',)  # These fields should not be editable
 
 class ChatLogsSerializer(serializers.ModelSerializer):
@@ -30,5 +30,5 @@ class ChatLogsSerializer(serializers.ModelSerializer):
 class AdviceDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdviceData
-        fields = ('id', 'user', 'advice', 'effectiveness', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'advice', 'created_at')
         read_only_fields = ('user',)  # These fields should not be editable
