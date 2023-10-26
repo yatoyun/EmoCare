@@ -17,8 +17,6 @@ class EmotionData(models.Model):
     emotion_score = models.FloatField()
     emotion_magnitude = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
 class ChatLogs(models.Model):
     user = models.ForeignKey(UserModel, related_name='chat_logs', on_delete=models.CASCADE)
     message = models.TextField()
@@ -27,6 +25,4 @@ class ChatLogs(models.Model):
 class AdviceData(models.Model):
     user = models.ForeignKey(UserModel, related_name='advice_data', on_delete=models.CASCADE)
     advice = models.TextField()
-    effectiveness = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # Rating from 1 to 5
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
