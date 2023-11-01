@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserModel, EmotionData, ChatLogs, AdviceData
+from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData
 
 class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,9 +11,17 @@ class UserModelSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = UserModel.objects.create_user(
             username=validated_data['username'],
-            password=validated_data['password']
-            )
+            password=validated_data['password'],
+            email=validated_data.get('email', '')
+        )
         return user
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserModelSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserProfile
+        fields = ('user', 'bio', 'profile_pic')
+        read_only_fields = ('profile_pic',)
 
 class EmotionDataSerializer(serializers.ModelSerializer):
     class Meta:

@@ -2,12 +2,11 @@ from django.contrib.auth import authenticate
 from rest_framework import status, views
 from rest_framework.response import Response
 from .serializers_auth import LoginSerializer
-from ..serializers import UserModelSerializer
+from ..serializers import UserModelSerializer, UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from ..models import TempRegister
 
 class RegisterView(views.APIView):
-    # ... (same as before)
     def post(self, request):
         # validate token
         token = request.data.get('token')
@@ -20,7 +19,14 @@ class RegisterView(views.APIView):
         if serializer.is_valid():
             user = serializer.save()
             user.line_user_id = temp_record.line_user_id
-            user.save() 
+            user.save()
+            
+            # create user profile
+            profile = UserProfileSerializer(data=request.data)
+            if profile.is_valid():
+                profile.save(user=user)
+            else:
+                return Response(profile.errors, status=status.HTTP_400_BAD_REQUEST)
 
             # Delete the temp_record as it's no longer needed
             temp_record.delete()
@@ -33,7 +39,6 @@ class RegisterView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(views.APIView):
-    # ... (same as before)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():

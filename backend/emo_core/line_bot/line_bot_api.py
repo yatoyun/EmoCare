@@ -57,6 +57,7 @@ def handle_message(event):
 def handle_registration(event, line_user_id):
     user, created = UserModel.objects.get_or_create(line_user_id=line_user_id)
     if created:
+        user.delete()  # Delete the user as we don't need it
         unique_token = generate_unique_token()
         TempRegister.objects.update_or_create(line_user_id=line_user_id, defaults={'token': unique_token})
         registration_url = f"http://localhost:3000?token={unique_token}" # for testing

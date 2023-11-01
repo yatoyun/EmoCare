@@ -2,9 +2,9 @@ from django.http import JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import UserModel, EmotionData, ChatLogs, AdviceData
+from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData
 from django.db.models import Avg, Max, Min, Count
-from .serializers import UserModelSerializer, EmotionDataSerializer, ChatLogsSerializer, AdviceDataSerializer
+from .serializers import UserModelSerializer, UserProfileSerializer, EmotionDataSerializer, ChatLogsSerializer, AdviceDataSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = UserModel.objects.all()
@@ -13,11 +13,45 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['PATCH'])
     def update_user(self, request, pk=None):
         user = self.get_object()
-        # Serializer for default User can be used here if needed
         if user:
-            # Update user logic here
-            return Response({"status": "User updated"}, status=status.HTTP_200_OK)
-        return Response({"error": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
+            # 既存のデータを取得
+            serializer = UserModelSerializer(user, data=request.data, partial=True)  # partial=True で部分更新を許可
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"status": "User updated", "data": serializer.data}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid data", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['DELETE'])
+    def delete_user(self, request, pk=None):
+        user = self.get_object()
+        if user:
+            user.delete()
+            return Response({"status": "User deleted"}, status=status.HTTP_200_OK)
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    
+    def get_queryset(self):
+        return UserProfile.objects.filter(user=self.request.user)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = UserProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EmotionDataViewSet(viewsets.ModelViewSet):
     queryset = EmotionData.objects.all()

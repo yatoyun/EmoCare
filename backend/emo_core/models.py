@@ -4,6 +4,14 @@ from django.contrib.auth.models import AbstractUser
 class UserModel(AbstractUser):
     line_user_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     
+class UserProfile(models.Model):
+    user = models.OneToOneField(UserModel, on_delete=models.CASCADE, related_name='profile')
+    bio = models.TextField(null=True, blank=True)
+    profile_pic = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+    
 class TempRegister(models.Model):
     line_user_id = models.CharField(max_length=255, unique=True)
     token = models.CharField(max_length=255, unique=True)
