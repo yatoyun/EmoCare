@@ -10,11 +10,13 @@ router.register(r'users', views.UserViewSet, basename='user')
 router.register(r'emotionData', views.EmotionDataViewSet)
 router.register(r'chatLogs', views.ChatLogsViewSet)
 router.register(r'adviceData', views.AdviceDataViewSet)
+router.register(r'userProfile', views.UserProfileViewSet)
 
 # Create a custom route for the statistics view
 statistics_list = views.StatisticsView.as_view({'get': 'list'})
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('statistics/', statistics_list, name='statistics-list'),
