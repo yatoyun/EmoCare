@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import api, { setAuthToken } from '../api/api';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from './Header';
-
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 
 const UserProfile = () => {
     const [profile, setProfile] = useState(null);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [userId, setUserId] = useState(null);  // For dynamic ID
+    const [userId, setUserId] = useState(null);
     const [message, setMessage] = useState('');
     const history = useNavigate();
 
@@ -70,59 +69,53 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="apps">
+        <div>
             <Header />
-            <div className="container mt-5">
-                <div className="row justify-content-center">
-                    <div className="col-md-6">
-                        <div className="card">
-                            <div className="card-header bg-primary text-white text-center">
-                                <h1>User Profile</h1>
-                            </div>
-                            <div className="card-body">
-                                <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
-                                    <div className="form-group">
-                                        <label htmlFor="name">Name</label>
-                                        <input
+            <Container className="mt-5">
+                <Row className="justify-content-md-center">
+                    <Col xs={12} md={6}>
+                        <Card>
+                            <Card.Body>
+                            <Card.Title className="text-center mb-4">User Profile</Card.Title>
+                                <Form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
+                                    <Form.Group>
+                                        <Form.Label>Name</Form.Label>
+                                        <Form.Control
                                             type="text"
-                                            id="name"
-                                            className="form-control"
-                                            value={name}
+                                                                                        value={name}
                                             onChange={(e) => setName(e.target.value)}
                                         />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="email">Email</label>
-                                        <input
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Label>Email</Form.Label>
+                                        <Form.Control
                                             type="email"
-                                            id="email"
-                                            className="form-control"
-                                            value={email}
+                                                                                        value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                         />
-                                    </div>
+                                    </Form.Group>
                                     {message && (
-                                        <div className={`alert mt-3 ${message === 'Profile updated' ? 'alert-primary' : 'alert-danger'}`}>
+                                        <Alert variant={message === 'Profile updated' ? 'primary' : 'danger'} className="mt-3">
                                             {message}
-                                        </div>
+                                        </Alert>
                                     )}
-                                    <button type="submit" className="btn btn-outline-primary">
+                                    <Button variant="outline-primary" type="submit">
                                         Update Profile
-                                    </button>
-                                </form>
+                                    </Button>
+                                </Form>
                                 <div className="mt-3 d-flex justify-content-between">
                                     <Link to="/logout" className="alert-link">
                                         Logout
                                     </Link>
-                                    <button onClick={handleDelete} className="btn btn-outline-danger">
+                                    <Button variant="outline-danger" onClick={handleDelete}>
                                         Delete User
-                                    </button>
+                                    </Button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
         </div>
     );
 };

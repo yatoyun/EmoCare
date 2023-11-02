@@ -1,25 +1,31 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { Navbar, Nav, Container } from 'react-bootstrap';
 
 const Header = () => {
-    const [showMenu, setShowMenu] = useState(false);
+    const [expanded, setExpanded] = useState(false);
+
+    const toggleMenu = () => {
+        setExpanded(!expanded);
+    };
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-            <Link className="navbar-brand" to="/UserProfile">EmoCare</Link>
-            <button className="navbar-toggler" type="button" onClick={() => setShowMenu(!showMenu)}>
-                <span className="navbar-toggler-icon"></span>
-            </button>
-
-            <div className={`collapse navbar-collapse ${showMenu ? 'show' : ''}`}>
-                <ul className="navbar-nav ml-auto">
-                    <li className="nav-item">
-                        <Link className="nav-link" to="/UserProfile">UserProfile</Link>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+        <Navbar expand="lg" bg="dark" variant="dark" expanded={expanded}>
+            <Container>
+                <Navbar.Brand as={Link} to="/UserProfile">EmoCare</Navbar.Brand>
+                <Navbar.Toggle aria-controls="responsive-navbar-nav" onClick={toggleMenu} />
+                <Navbar.Collapse id="responsive-navbar-nav">
+                    <Nav className="ml-auto">
+                        <Nav.Link as={Link} to="/UserProfile" onClick={() => setExpanded(false)}>
+                            UserProfile
+                        </Nav.Link>
+                        <Nav.Link as={Link} to="/statistics" onClick={() => setExpanded(false)}>
+                            Statistics
+                        </Nav.Link>
+                    </Nav>
+                </Navbar.Collapse>
+            </Container>
+        </Navbar>
     );
 };
 
