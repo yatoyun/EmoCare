@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData
 from django.db.models import Avg, Max, Min, Count
+from django.db.models.functions import TruncDay, TruncMonth
 from .serializers import UserModelSerializer, UserProfileSerializer, EmotionDataSerializer, ChatLogsSerializer, AdviceDataSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -83,6 +84,13 @@ class StatisticsView(viewsets.ViewSet):
         total_chats = ChatLogs.objects.count()
         total_advices = AdviceData.objects.count()
 
+        daily_stats = EmotionData.objects.annotate(date=TruncDay('created_at')).values('date').annotate(
+            avg_score=Avg('emotion_score'), max_score=Max('emotion_score'), min_score=Min('emotion_score')).order_by('date')
+
+        monthly_stats = EmotionData.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(
+            avg_score=Avg('emotion_score'), max_score=Max('emotion_score'), min_score=Min('emotion_score')).order_by('month')
+
+        
         stats = {
             'avg_emotion_score': avg_emotion_score,
             'avg_emotion_magnitude': avg_emotion_magnitude,
@@ -91,41 +99,12 @@ class StatisticsView(viewsets.ViewSet):
             'count_neutral': count_neutral,
             'count_mixed': count_mixed,
             'total_chats': total_chats,
-            'total_advices': total_advices
+            'total_advices': total_advices,
+            'daily_stats': list(daily_stats),
+            'monthly_stats': list(monthly_stats),
         }
         return Response(stats)
 
-    def retrieve(self, request, pk=None):
-        # Filter by user
-        user_emotion_data = EmotionData.objects.filter(user_id=pk)
-
-        # Average emotion score and magnitude for this user
-        avg_emotion_score = user_emotion_data.aggregate(Avg('emotion_score'))['emotion_score__avg']
-        avg_emotion_magnitude = user_emotion_data.aggregate(Avg('emotion_magnitude'))['emotion_magnitude__avg']
-        
-        # Count of positive, negative, and neutral emotion entries for this user
-        count_positive = user_emotion_data.filter(emotion_score__gt=0.2).count()
-        count_negative = user_emotion_data.filter(emotion_score__lt=-0.2).count()
-        count_neutral = user_emotion_data.filter(emotion_score__gte=-0.2, emotion_score__lte=0.2).count()
-
-        # Mixed emotions: high magnitude but near-zero score for this user
-        count_mixed = user_emotion_data.filter(emotion_score__gte=-0.2, emotion_score__lte=0.2, emotion_magnitude__gt=0.5).count()
-
-        # Total chats and advices for this user
-        total_chats = ChatLogs.objects.filter(user_id=pk).count()
-        total_advices = AdviceData.objects.filter(user_id=pk).count()
-
-        stats = {
-            'avg_emotion_score': avg_emotion_score,
-            'avg_emotion_magnitude': avg_emotion_magnitude,
-            'count_positive': count_positive,
-            'count_negative': count_negative,
-            'count_neutral': count_neutral,
-            'count_mixed': count_mixed,
-            'total_chats': total_chats,
-            'total_advices': total_advices
-        }
-        return Response(stats, status=status.HTTP_200_OK)
 
         
 

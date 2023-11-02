@@ -4,6 +4,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import UserProfile from './components/UserProfile';
 import Logout from './components/Logout';
+import Statistics from './components/Statistics';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/userProfile" element={<UserProfile />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/statistics" element={<Statistics />} />
       </Routes>
     </Router>
   );
