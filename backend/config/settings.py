@@ -31,7 +31,7 @@ DEBUG = env('DEBUG')
 
 
 # test
-ALLOWED_HOSTS = [".ngrok.io", 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(' ')
 
 
 # Application definition
