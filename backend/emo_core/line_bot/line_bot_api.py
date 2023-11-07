@@ -23,6 +23,7 @@ ACCESS_TOKEN = env('LINE_BOT_ACCESS_TOKEN')
 CHANNEL_SECRET = env('LINE_BOT_CHANNEL_SECRET')
 GOOGLE_APPLICATION_CREDENTIALS = env('GOOGLE_APPLICATION_CREDENTIALS')
 GPT_API_KEY = env('GPT_API_KEY')
+REGISTER_URL = env('REGISTER_URL')
 
 # Initialize APIs
 line_bot_api = LineBotApi(ACCESS_TOKEN)
@@ -60,7 +61,7 @@ def handle_registration(event, line_user_id):
         user.delete()  # Delete the user as we don't need it
         unique_token = generate_unique_token()
         TempRegister.objects.update_or_create(line_user_id=line_user_id, defaults={'token': unique_token})
-        registration_url = f"http://localhost:3000?token={unique_token}" # for testing
+        registration_url = f"{REGISTER_URL}?token={unique_token}" # for testing
         reply_text = f"Please register by visiting: {registration_url}"
     else:
         reply_text = "You are already registered."
