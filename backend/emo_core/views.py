@@ -1,11 +1,14 @@
-from django.http import JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData
-from django.db.models import Avg, Max, Min, Count
-from django.db.models.functions import TruncDay, TruncMonth
+from django.db.models import Avg, Max, Min, Count, StdDev, Variance, Sum, Q
+from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 from .serializers import UserModelSerializer, UserProfileSerializer, EmotionDataSerializer, ChatLogsSerializer, AdviceDataSerializer
+from scipy import stats
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = UserModel.objects.all()
@@ -33,7 +36,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"status": "User deleted"}, status=status.HTTP_200_OK)
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-
+@permission_classes([IsAuthenticated])
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
@@ -65,46 +68,94 @@ class ChatLogsViewSet(viewsets.ModelViewSet):
 class AdviceDataViewSet(viewsets.ModelViewSet):
     queryset = AdviceData.objects.all()
     serializer_class = AdviceDataSerializer
-
+@permission_classes([IsAuthenticated])
 class StatisticsView(viewsets.ViewSet):
     def list(self, request):
-        # Average emotion score and magnitude
-        avg_emotion_score = EmotionData.objects.all().aggregate(Avg('emotion_score'))['emotion_score__avg']
-        avg_emotion_magnitude = EmotionData.objects.all().aggregate(Avg('emotion_magnitude'))['emotion_magnitude__avg']
+        ####### EmotionData statistics ########
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'need authorization'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = request.user
+            emotion_data = EmotionData.objects.filter(user=user)
         
-        # Count of positive, negative, and neutral emotion entries
-        count_positive = EmotionData.objects.filter(emotion_score__gt=0.2).count()
-        count_negative = EmotionData.objects.filter(emotion_score__lt=-0.2).count()
-        count_neutral = EmotionData.objects.filter(emotion_score__gte=-0.2, emotion_score__lte=0.2).count()
+            emotion_scores = list(emotion_data.values_list('emotion_score', flat=True))
+            emotion_magnitudes = list(emotion_data.values_list('emotion_magnitude', flat=True))
+            
+            
 
-        # Mixed emotions: high magnitude but near-zero score
-        count_mixed = EmotionData.objects.filter(emotion_score__gte=-0.2, emotion_score__lte=0.2, emotion_magnitude__gt=0.5).count()
+            ####### Time series analysis for trends #######
+            daily_emotion_stats = emotion_data.annotate(date=TruncDay('created_at')).values('date').annotate(
+                avg_score=Avg('emotion_score'),
+                count=Count('id')
+            ).order_by('date')
+            
+            weekly_emotion_stats = emotion_data.annotate(week=TruncWeek('created_at')).values('week').annotate(
+                avg_score=Avg('emotion_score'),
+                count=Count('id')
+            ).order_by('week')
 
-        # Total chats and advices
-        total_chats = ChatLogs.objects.count()
-        total_advices = AdviceData.objects.count()
+            ####### ChatLogs statistics - total number of messages and total message length #######
+            # per date
+            daily_chat_stats = ChatLogs.objects.annotate(date=TruncDay('created_at')).values('date').annotate(
+                total_messages=Count('id'),
+            ).order_by('date')
+            # per week
+            weekly_chat_stats = ChatLogs.objects.annotate(week=TruncWeek('created_at')).values('week').annotate(
+                total_messages=Count('id'),
+            ).order_by('week')
+            
+            ####### sentiment classification 
+            # Daily
+            daily_sentiment_classification = emotion_data.annotate(
+                date=TruncDay('created_at')
+            ).values('date').annotate(
+                positive=Count('id', filter=Q(emotion_score__gt=0.25)),
+                negative=Count('id', filter=Q(emotion_score__lt=-0.25)),
+                neutral=Count('id', filter=Q(emotion_score__gte=-0.15, emotion_score__lte=0.15)),
+                mixed=Count('id', filter=Q(emotion_score__gt=-0.15, emotion_score__lt=0.15, emotion_magnitude__gt=0.5))
+            ).order_by('date')
 
-        daily_stats = EmotionData.objects.annotate(date=TruncDay('created_at')).values('date').annotate(
-            avg_score=Avg('emotion_score'), max_score=Max('emotion_score'), min_score=Min('emotion_score')).order_by('date')
+            # Weekly
+            weekly_sentiment_classification = emotion_data.annotate(
+                week=TruncWeek('created_at')
+            ).values('week').annotate(
+                positive=Count('id', filter=Q(emotion_score__gt=0.25)),
+                negative=Count('id', filter=Q(emotion_score__lt=-0.25)),
+                neutral=Count('id', filter=Q(emotion_score__gte=-0.15, emotion_score__lte=0.15)),
+                mixed=Count('id', filter=Q(emotion_score__gt=-0.15, emotion_score__lt=0.15, emotion_magnitude__gt=0.5))
+            ).order_by('week')
 
-        monthly_stats = EmotionData.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(
-            avg_score=Avg('emotion_score'), max_score=Max('emotion_score'), min_score=Min('emotion_score')).order_by('month')
 
+            ####### Scatter plot data for emotion score vs. magnitude 
+            scatter_data = list(zip(emotion_scores, emotion_magnitudes))
+
+            # Correlation and descriptive statistics
+            correlation_score_magnitude = stats.pearsonr(emotion_scores, emotion_magnitudes)[0]
+            skewness = stats.skew(emotion_scores)
+            kurtosis = stats.kurtosis(emotion_scores)
+
+            # Descriptive context for skewness and kurtosis
+            descriptive_skewness = "positive" if skewness > 0 else "negative"
+            descriptive_kurtosis = "less reliable" if kurtosis > 3 else "reliable"
+
+            # Prepare the response data
+            stats_response = {
+                'daily_emotion_stats': list(daily_emotion_stats),
+                'weekly_emotion_stats': list(weekly_emotion_stats),
+                'daily_chat_stats': list(daily_chat_stats),
+                'weekly_chat_stats': list(weekly_chat_stats),
+                'daily_sentiment_classification': list(daily_sentiment_classification),
+                'weekly_sentiment_classification': list(weekly_sentiment_classification),
+                'scatter_data': scatter_data,
+                'correlation_score_magnitude': correlation_score_magnitude,
+                'skewness': {'value': skewness, 'description': descriptive_skewness},
+                'kurtosis': {'value': kurtosis, 'description': descriptive_kurtosis},
+            }
+
+            return Response(stats_response)
         
-        stats = {
-            'avg_emotion_score': avg_emotion_score,
-            'avg_emotion_magnitude': avg_emotion_magnitude,
-            'count_positive': count_positive,
-            'count_negative': count_negative,
-            'count_neutral': count_neutral,
-            'count_mixed': count_mixed,
-            'total_chats': total_chats,
-            'total_advices': total_advices,
-            'daily_stats': list(daily_stats),
-            'monthly_stats': list(monthly_stats),
-        }
-        return Response(stats)
-
-
-        
-
+        except EmotionData.DoesNotExist:
+            return Response({'error': 'cannot find data'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
