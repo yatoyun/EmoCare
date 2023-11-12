@@ -1,18 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/auth/authActions';
 
 const Logout = () => {
-    const history = useNavigate();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
 
     useEffect(() => {
-        // Remove the token from local storage
-        localStorage.removeItem('token');
-
-        // Redirect to login page
-        history('/login');
-
-        console.log('Logged out');
-    }, [history]);
+        try {
+            dispatch(logout());
+            setTimeout(() => {
+                navigate('/login');
+            }, 100); 
+        } catch (error) {
+            console.log('Logout failed', error);
+        }
+    }, [dispatch, navigate]);
 
     return (
         <div>

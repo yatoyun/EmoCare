@@ -3,6 +3,7 @@ from ..models import UserModel, TempRegister
 from emo_core.models import EmotionData, ChatLogs, AdviceData
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
@@ -56,15 +57,21 @@ def handle_message(event):
     
 # register functions
 def handle_registration(event, line_user_id):
-    user, created = UserModel.objects.get_or_create(line_user_id=line_user_id)
-    if created:
-        user.delete()  # Delete the user as we don't need it
-        unique_token = generate_unique_token()
-        TempRegister.objects.update_or_create(line_user_id=line_user_id, defaults={'token': unique_token})
-        registration_url = f"{REGISTER_URL}?token={unique_token}" # for testing
-        reply_text = f"Please register by visiting: {registration_url}"
-    else:
-        reply_text = "You are already registered."
+    reply_text = ""
+    try:
+        with transaction.atomic():
+            user, created = UserModel.objects.get_or_create(line_user_id=line_user_id)
+            if created:
+                unique_token = generate_unique_token()
+                TempRegister.objects.update_or_create(line_user_id=line_user_id, defaults={'token': unique_token, 'token_expires': 300})
+                registration_url = f"{REGISTER_URL}?token={unique_token}"  # Ensure this is HTTPS
+                reply_text = "Please complete your registration by visiting this link: " + registration_url
+            else:
+                reply_text = "You are already registered"
+    except Exception as e:
+        # Log the exception for debugging purposes
+        reply_text = "An error occurred. Please try again later."
+
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
 # chat functions
@@ -135,7 +142,7 @@ def generate_advice(text, new_emotion_score):
     
     # generate advice using GPT-3.5
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-1106",
         messages=messages,
         max_tokens=max_tokens,
         n=1,

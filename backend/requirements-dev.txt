@@ -2,9 +2,12 @@ Django==4.2.3
 django_environ==0.11.2
 djangorestframework==3.14.0
 djangorestframework_simplejwt==5.3.0
+django-environ==0.11.2
 line_bot_sdk==3.5.0
 openai==0.28.1
 protobuf==4.24.4
 django-cors-headers
 google-cloud-language
 Pillow
+scipy
+zxcvbn==4.4.28

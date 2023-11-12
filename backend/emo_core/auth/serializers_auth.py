@@ -1,13 +1,10 @@
-from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
 
-    def validate(self, data):
-        username = data.get("username", "")
-        password = data.get("password", "")
-        
-        if username and password:
-            return data
-        raise serializers.ValidationError("Both username and password are required")
+        # Add custom claims
+        token['line_user_id'] = user.line_user_id
+        return token
