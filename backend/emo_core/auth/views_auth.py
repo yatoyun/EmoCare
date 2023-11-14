@@ -6,10 +6,13 @@ from ..serializers import UserModelSerializer, UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers_auth import CustomTokenObtainPairSerializer
-from ..models import TempRegister
-
+from ..models import TempRegisterToken, TemporaryCode, UserModel
+from rest_framework.decorators import permission_classes
 from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
+from ..line_bot.line_bot_api import send_temporary_code
+from django.utils import timezone
+from datetime import timedelta
 
 
 
@@ -17,38 +20,45 @@ class RegisterView(views.APIView):
     def post(self, request):
         # Validate token
         token = request.data.get('token')
-        temp_record = TempRegister.objects.filter(token=token).first()
+        temp_record = TempRegisterToken.objects.filter(token=token).first()
         
         # トークンの存在と有効性のチェック
-        if not temp_record or temp_record.expiry_date < timezone.now():
+        if not temp_record or temp_record.is_expired():
+            print("Invalid or expired token")
+            user = UserModel.objects.filter(line_user_id=str(temp_record)).first()
+            user.delete()
+            temp_record.delete()
             return Response({"message": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             serializer = UserModelSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
-                user.line_user_id = temp_record.line_user_id
+                user.line_user_id = str(temp_record)
+                
+                if UserModel.objects.filter(line_user_id=user.line_user_id).exists():
+                    # check the user name whose line_user_id is the same as the new user's line_user_id
+                    existing_user = UserModel.objects.get(line_user_id=user.line_user_id)
+                    existing_user.delete()
                 user.save()
                 
                 # Create user profile
                 profile_data = request.data.copy()
                 profile_serializer = UserProfileSerializer(data=profile_data)
+                temp_record.delete()
+                
                 if profile_serializer.is_valid():
                     # Assign the user object to the profile and save
                     profile = profile_serializer.save(user=user)
                 else:
-                    return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-                # Delete the temp_record as it's no longer needed
-                temp_record.delete()
-
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }, status=status.HTTP_201_CREATED)
+                    print("Invalid profile data")
+                    return Response({"message": "Invalid profile data"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                print("User created successfully")
+                return Response(status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errorsw, status=status.HTTP_400_BAD_REQUEST)
+                print("Already exists")
+                return Response({"message": "A User with that user name already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -113,4 +123,28 @@ class LogoutView(TokenObtainPairView):
         response.delete_cookie("access")
         response.delete_cookie("refresh")
         return response
+    
+
+@permission_classes([IsAuthenticated])
+class SendTemporaryCode(views.APIView):
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        try:
+            if not user.line_user_id:
+                return Response({"error": "LINE user ID not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            temp_code = send_temporary_code(user.line_user_id)
+            expiration_time = timezone.now() + timedelta(minutes=3)  # 例: 3分後に期限切れ
+
+            TemporaryCode.objects.create(
+                user=user,
+                code=temp_code,
+                expiration=expiration_time
+            )
+
+            return Response({"message": "Temporary code sent to LINE user."}, status=status.HTTP_200_OK)
+
+        except UserModel.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 

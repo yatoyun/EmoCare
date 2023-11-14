@@ -1,5 +1,5 @@
 from google.cloud import language_v1
-from ..models import UserModel, TempRegister
+from ..models import UserModel, TempRegisterToken
 from emo_core.models import EmotionData, ChatLogs, AdviceData
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +12,10 @@ from pathlib import Path
 import uuid
 import environ
 import openai
-import traceback
+import random
+import string
+from django.utils import timezone
+from datetime import timedelta
 
 # Environment and Configuration
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +48,23 @@ def callback(request):
         return HttpResponse()
     return HttpResponseBadRequest()
 
+
+def send_temporary_code(line_user_id):
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    # LINEユーザーに送信
+    line_bot_api.push_message(
+        line_user_id,
+        TextSendMessage(text=f"Your temporary code:")
+    )
+
+    line_bot_api.push_message(
+        line_user_id,
+        TextSendMessage(text=str(code))
+    )
+
+    return code
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_user_id = event.source.user_id
@@ -63,7 +83,10 @@ def handle_registration(event, line_user_id):
             user, created = UserModel.objects.get_or_create(line_user_id=line_user_id)
             if created:
                 unique_token = generate_unique_token()
-                TempRegister.objects.update_or_create(line_user_id=line_user_id, defaults={'token': unique_token, 'token_expires': 300})
+                expiration_time = timezone.now() + timedelta(minutes=3)
+                if TempRegisterToken.objects.filter(line_user_id=line_user_id).exists():
+                    TempRegisterToken.objects.filter(line_user_id=line_user_id).delete()
+                TempRegisterToken.objects.create(line_user_id=line_user_id, token=unique_token, expiration=expiration_time)
                 registration_url = f"{REGISTER_URL}?token={unique_token}"  # Ensure this is HTTPS
                 reply_text = "Please complete your registration by visiting this link: " + registration_url
             else:
@@ -71,6 +94,7 @@ def handle_registration(event, line_user_id):
     except Exception as e:
         # Log the exception for debugging purposes
         reply_text = "An error occurred. Please try again later."
+        print(e)
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 

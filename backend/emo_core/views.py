@@ -1,13 +1,16 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, views, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData
+from .models import UserModel, UserProfile, EmotionData, ChatLogs, AdviceData, TemporaryCode
 from django.db.models import Avg, Max, Min, Count, StdDev, Variance, Sum, Q
 from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from .serializers import UserModelSerializer, UserProfileSerializer, EmotionDataSerializer, ChatLogsSerializer, AdviceDataSerializer
 from scipy import stats
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -32,7 +35,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def delete_user(self, request, pk=None):
         user = self.get_object()
         if user:
-            user.delete()
+            try:
+                user.delete()
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response({"status": "User deleted"}, status=status.HTTP_200_OK)
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -56,6 +62,36 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@permission_classes([IsAuthenticated])
+class ResetPassword(views.APIView):
+    def post(self, request):
+        temp_code = request.data.get('oneTimePassword')
+        new_password = request.data.get('password')  # 新しいパスワード
+
+        user = request.user  # 現在の認証ユーザーを取得
+        try:
+            temporary_code = TemporaryCode.objects.get(user=user, code=temp_code)
+
+            if not temporary_code.is_expired():
+                # 新しいパスワードでユーザーのパスワードを更新
+                try:
+                    validate_password(new_password, user)
+                    user.set_password(new_password)
+                    user.save()
+                except ValidationError as e:
+                    return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # 一時使用コードの削除
+                temporary_code.delete()
+
+                return Response({"message": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid or expired temporary code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        except TemporaryCode.DoesNotExist:
+            return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class EmotionDataViewSet(viewsets.ModelViewSet):
     queryset = EmotionData.objects.all()
@@ -68,6 +104,7 @@ class ChatLogsViewSet(viewsets.ModelViewSet):
 class AdviceDataViewSet(viewsets.ModelViewSet):
     queryset = AdviceData.objects.all()
     serializer_class = AdviceDataSerializer
+
 @permission_classes([IsAuthenticated])
 class StatisticsView(viewsets.ViewSet):
     def list(self, request):

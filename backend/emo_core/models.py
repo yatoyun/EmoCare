@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 class UserModel(AbstractUser):
     line_user_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
@@ -12,13 +13,24 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
     
-class TempRegister(models.Model):
-    line_user_id = models.CharField(max_length=255, unique=True)
-    token = models.CharField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+class TempRegisterToken(models.Model):
+    line_user_id = models.CharField(max_length=255)
+    token = models.CharField(max_length=255)
+    expiration = models.DateTimeField()
 
     def __str__(self):
         return self.line_user_id
+    
+    def is_expired(self):
+        return timezone.now() >= self.expiration
+
+class TemporaryCode(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    expiration = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() >= self.expiration
 
 class EmotionData(models.Model):
     user = models.ForeignKey(UserModel, related_name='emotion_data', on_delete=models.CASCADE)
