@@ -5,6 +5,7 @@ import Login from './components/Login';
 import UserProfile from './components/UserProfile';
 import Logout from './components/Logout';
 import Statistics from './components/Statistics';
+import ResetPassword from './components/ResetPassword';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/userProfile" element={<UserProfile />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/statistics" element={<Statistics />} />
+        <Route path="/resetPassword" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
