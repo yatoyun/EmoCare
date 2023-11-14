@@ -6,10 +6,10 @@ import { useEffect } from 'react';
 
 const PasswordStrengthMeter = ({ password, setStrengthMessage }) => {
   const testResult = zxcvbn(password);
-  const num = testResult.score * 100/4;
+  const num = testResult.score * 100 / 4;
 
   const createPassLabel = () => {
-    switch(testResult.score) {
+    switch (testResult.score) {
       case 0:
         return 'Very weak';
       case 1:
@@ -27,7 +27,7 @@ const PasswordStrengthMeter = ({ password, setStrengthMessage }) => {
 
   // 強度が十分かどうかのメッセージを設定
   useEffect(() => {
-    if (testResult.score < 3) {
+    if (testResult.score < 2) {
       setStrengthMessage('Password is not strong enough');
     } else {
       setStrengthMessage('');
@@ -35,7 +35,7 @@ const PasswordStrengthMeter = ({ password, setStrengthMessage }) => {
   }, [testResult.score, setStrengthMessage]);
 
   const funcProgressColor = () => {
-    switch(testResult.score) {
+    switch (testResult.score) {
       case 0:
         return '#828282';
       case 1:
@@ -59,10 +59,11 @@ const PasswordStrengthMeter = ({ password, setStrengthMessage }) => {
 
   return (
     <>
-      <p style={{ color: funcProgressColor() }}>{createPassLabel()}</p>
       <div className="progress" style={{ height: '7px' }}>
         <div className="progress-bar" style={changePasswordColor()}></div>
       </div>
+      <p style={{ color: funcProgressColor() }}>{createPassLabel()}</p>
+
     </>
   )
 }

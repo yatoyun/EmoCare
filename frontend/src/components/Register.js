@@ -43,11 +43,11 @@ const Register = () => {
             return;
         }
         try {
-            await api.post('register/', { username, password, token });
+            await api.post('/register/', { username, password, token });
             console.log('Registered successfully');
 
             // 登録成功後、自動ログイン
-            const loginResponse = await api.post('api/token/', { username, password });
+            const loginResponse = await api.post('/token/', { username, password });
             if (loginResponse.data && loginResponse.data.access) {
                 // ログイン成功時の処理
                 console.log('Logged in successfully');
@@ -57,7 +57,7 @@ const Register = () => {
         } catch (error) {
             if (error.response && error.response.status === 400) {
                 console.log(error.response.data);
-                setMessage('A user with that username already exists.');
+                setMessage(error.response.data.message);
             } else {
                 // その他のエラー
                 console.log('Registration failed', error);
