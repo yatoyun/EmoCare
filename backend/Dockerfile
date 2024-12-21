@@ -14,6 +14,10 @@ COPY requirements.txt $APP_ROOT/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf ~/.cache/pip
 
+RUN mkdir -p $APP_ROOT && rm -f /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
+RUN useradd -r nginx
+
 RUN mkdir -p /etc/supervisor
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
@@ -27,6 +31,6 @@ RUN unitd \
     --unix-socket /var/run/control.unit.sock \
     http://localhost/config
 
-EXPOSE 8080
+EXPOSE 8002
 
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["supervisord", "--nodaemon", "-c", "/etc/supervisor/supervisord.conf"]
