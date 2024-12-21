@@ -1,0 +1,18 @@
+{
+    "listeners":{
+        "*:8081": {
+            "pass": "applications/app"
+        }
+    },
+    "applications": {
+        "app": {
+            "type": "python",
+            "processes": 24,
+            "path": "/usr/src/app",
+            "module": "manage",
+            "user": "nobody",
+            "group": "nogroup",
+            "threads": 1
+        }
+    }
+}
