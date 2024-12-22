@@ -1,7 +1,21 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: ./_docker/app/Dockerfile
     ports:
-      - "8080:8080"
+      - "8002:8002"
     volumes:
       - ./backend:/app
+
+  cli:
+    build:
+      context: .
+      dockerfile: ./_docker/cli/Dockerfile
+    volumes:
+      - .:/app
+    tty: true
+
+networks:
+  default:
+    name: my_network
