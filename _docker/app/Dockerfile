@@ -1,4 +1,4 @@
-FROM unit:python3.12-slim
+FROM unit:python3.12
 
 ENV PYTHONUNBUFFERED 1
 ENV DEBIAN_FRONTEND noninteractive
@@ -21,12 +21,15 @@ RUN useradd -r nginx
 RUN mkdir -p /etc/supervisor
 COPY ./backend/supervisord.conf /etc/supervisor/supervisord.conf
 
-COPY --chown=nobody:nogroup . $APP_ROOT
+COPY --chown=nobody:nogroup ./backend $APP_ROOT
+
+# import env
+COPY ./backend/.env $APP_ROOT/.env
 
 ENV PYTHONPATH $APP_ROOT
 
 COPY ./backend/config.json /tmp/config.json
-RUN unitd \
+RUN set -x && unitd \
     && curl -X PUT -d @/tmp/config.json \
     --unix-socket /var/run/control.unit.sock \
     http://localhost/config

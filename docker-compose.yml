@@ -6,14 +6,14 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./backend:/app
+      - ./backend:/usr/src/app
 
   cli:
     build:
       context: .
       dockerfile: ./_docker/cli/Dockerfile
     volumes:
-      - .:/app
+      - .:/usr/src/app
     tty: true
 
 networks:
