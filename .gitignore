@@ -1,5 +1,7 @@
 backend/.env
 backend/db/db.sqlite3
+backend/supervisord.pid
+backend/supervisord.log
 __pycache__/
 *.pyc
 backend/staticfiles/
