@@ -13,8 +13,11 @@ services:
       context: .
       dockerfile: ./_docker/cli/Dockerfile
     volumes:
-      - .:/usr/src/app
+      - .:/app
     tty: true
+    ports:
+      - "8000:8000"
+
 
 networks:
   default:

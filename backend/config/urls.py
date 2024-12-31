@@ -19,5 +19,7 @@ from django.urls import path, include  # Don't forget to import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('emo_core.urls')),  # Include emo_core's urls here
+    path('', include('apps.users.urls', namespace='users')),
+    path('chat/', include('apps.chat.urls', namespace='chat')),
+    path('statistics/', include('apps.user_statistics.urls', namespace='statistics')),
 ]
