@@ -11,30 +11,34 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import environ
 import os
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# import env file
-env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env(Path(BASE_DIR, ".env"))
+# import os.getenv file
+with open("./.env", "r") as f:
+    for line in f:
+        key, value = line.strip().split("=",1)
+        os.environ[key] = value
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = os.getenv("DEBUG")
 
 
 # test
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 # Application definition
 
@@ -75,9 +79,9 @@ MIDDLEWARE = [
 ROOT_URLCONF = "config.urls"
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
 
-CORS_ORIGIN_WHITELIST = env.list("CORS_ORIGIN_WHITELIST")
+CORS_ORIGIN_WHITELIST = os.getenv("CORS_ORIGIN_WHITELIST").split(",")
 
 TEMPLATES = [
     {
