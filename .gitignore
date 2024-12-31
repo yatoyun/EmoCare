@@ -5,3 +5,4 @@ backend/supervisord.log
 __pycache__/
 *.pyc
 backend/staticfiles/
+backend/google_cresidentials.json
