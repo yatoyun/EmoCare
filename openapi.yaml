@@ -4,10 +4,10 @@ info:
   description: API specification for session management and chat functionalities.
   version: 1.0.0
 servers:
-  - url: https://api.example.com/v1
+  - url: http://localhost:8002
     description: Production server
 paths:
-  /register:
+  /register/:
     post:
       summary: Register a new user
       requestBody:
@@ -39,7 +39,7 @@ paths:
                 type: string
         400:
           description: Bad request (e.g., email already registered)
-  /login:
+  /login/:
     post:
       summary: Login and retrieve session ID
       requestBody:
@@ -73,7 +73,7 @@ paths:
           description: Bad request (e.g., both name and email are missing)
         401:
           description: Unauthorized (invalid credentials)
-  /user:
+  /user/:
     get:
       summary: Get user information
       responses:
@@ -113,7 +113,7 @@ paths:
           description: User information updated successfully
         401:
           description: Unauthorized (invalid session)
-  /chat:
+  /chat/:
     post:
       summary: Post a chat message
       requestBody:
@@ -139,7 +139,7 @@ paths:
                     type: string
         401:
           description: Unauthorized (invalid session)
-  /chat/history:
+  /chat/history/:
     get:
       summary: Get chat history
       responses:
@@ -161,7 +161,7 @@ paths:
                       type: string
         401:
           description: Unauthorized (invalid session)
-  /statistics:
+  /statistics/:
     get:
       summary: Get statistics
       parameters: []
@@ -180,6 +180,11 @@ components:
     SessionID:
       type: apiKey
       in: cookie
-      name: sessionId
+      name: sessionid
+    CSRFToken:
+      type: apiKey
+      in: cookie
+      name: csrftoken
 security:
   - SessionID: []
+  - CSRFToken: []
