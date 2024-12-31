@@ -83,3 +83,87 @@ EmoCareはメンタルヘルスケアに特化したLINE BotとWebアプリケ�
 ---
 
 注意: この設計と仕様書は初版であり、プロジェクト進行中に調整が必要な場合があります。
+
+バックエンドのディレクトリ
+```
+backend/
+├── apps
+│   ├── chat
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   ├── models.py
+│   │   ├── serializers
+│   │   │   ├── __init__.py
+│   │   │   └── chat_serializers.py
+│   │   ├── services
+│   │   │   ├── __init__.py
+│   │   │   └── chat_services.py
+│   │   ├── tests
+│   │   │   ├── __init__.py
+│   │   │   └── test_chat.py
+│   │   ├── urls.py
+│   │   └── views
+│   │       ├── __init__.py
+│   │       └── chat_views.py
+│   ├── user_statistics
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   ├── models.py
+│   │   ├── serializers
+│   │   │   ├── __init__.py
+│   │   │   └── user_statistics_serializers.py
+│   │   ├── services
+│   │   │   ├── __init__.py
+│   │   │   └── user_statistics_services.py
+│   │   ├── tests
+│   │   │   ├── __init__.py
+│   │   │   └── test_user_statistics.py
+│   │   ├── urls.py
+│   │   └── views
+│   │       ├── __init__.py
+│   │       └── user_statistics_views.py
+│   └── users
+│       ├── __init__.py
+│       ├── admin.py
+│       ├── apps.py
+│       ├── managers.py
+│       ├── migrations
+│       ├── models.py
+│       ├── serializers
+│       │   ├── __init__.py
+│       │   └── users_serializers.py
+│       ├── services
+│       │   ├── __init__.py
+│       │   └── users_services.py
+│       ├── tests
+│       │   ├── __init__.py
+│       │   └── test_users.py
+│       ├── urls.py
+│       └── views
+│           ├── __init__.py
+│           └── users_views.py
+├── config
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── config.json
+├── db
+│   └── db.sqlite3
+├── google_cresidentials.json
+├── manage.py
+├── nginx.conf
+├── poetry.lock
+├── pyproject.toml
+├── pytest.ini
+├── requirements-dev.txt
+├── requirements.txt
+├── supervisord.conf
+├── supervisord.log
+├── supervisord.pid
+└── validations // 以前のモジュール、今後はusersに統合
+    └── password_strength_validator.py
+```
