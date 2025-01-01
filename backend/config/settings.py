@@ -81,8 +81,8 @@ ROOT_URLCONF = "config.urls"
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
-
 CORS_ORIGIN_WHITELIST = os.getenv("CORS_ORIGIN_WHITELIST").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(",")
 
 TEMPLATES = [
     {
@@ -202,4 +202,7 @@ X_FRAME_OPTIONS = "DENY"
 
 # httpOnly
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
+##
+# CSRF_COOKIE_HTTPONLYがfalseでないと、X-CSRFToken ヘッダーによるCSRFトークンの送信ができない
+##
+CSRF_COOKIE_HTTPONLY = False
