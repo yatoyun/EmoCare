@@ -10,7 +10,14 @@ function Chat() {
   useEffect(() => {
     // Fetch chat history
     api.get('chat/history/')
-      .then((response) => setMessages(response.data))
+      .then((response) => {
+        const formattedMessages = []
+        response.data.reverse().forEach((entry) => {
+          formattedMessages.push({ role: 'user', content: entry.user_message })
+          formattedMessages.push({ role: 'gpt', content: entry.gpt_response })
+        })
+        setMessages(formattedMessages)
+      })
       .catch((error) => console.error('Error fetching chat history:', error))
   }, [])
 
@@ -18,7 +25,11 @@ function Chat() {
     if (input.trim()) {
       try {
         const response = await api.post('chat/', { message: input })
-        setMessages([...messages, { role: 'user', content: input }, response.data])
+        setMessages([
+          ...messages,
+          { role: 'user', content: input },
+          { role: 'gpt', content: response.data.gpt_response },
+        ])
         setInput('')
       } catch (error) {
         console.error('Error sending message:', error)
