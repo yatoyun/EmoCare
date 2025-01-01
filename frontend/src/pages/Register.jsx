@@ -5,6 +5,7 @@ import { registerUser } from '../features/auth/authActions'
 
 function Register() {
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -12,7 +13,7 @@ function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    dispatch(registerUser(username, password))
+    dispatch(registerUser(username, email, password))
       .then(() => navigate('/chat'))
   }
 
@@ -27,6 +28,17 @@ function Register() {
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className="block mb-1">Email</label>
+          <input
+            type="text"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           />

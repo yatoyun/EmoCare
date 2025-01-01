@@ -9,7 +9,7 @@ function Chat() {
 
   useEffect(() => {
     // Fetch chat history
-    api.get('chat-history/')
+    api.get('chat/history/')
       .then((response) => setMessages(response.data))
       .catch((error) => console.error('Error fetching chat history:', error))
   }, [])

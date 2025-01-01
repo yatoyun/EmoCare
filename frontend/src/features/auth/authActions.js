@@ -1,9 +1,9 @@
 import api from '../../configs/api'
 import { loginSuccess, loginFail, logout, registerSuccess, registerFail } from './authSlice'
 
-export const loginUser = (username, password) => async (dispatch) => {
+export const loginUser = (name, password) => async (dispatch) => {
   try {
-    const response = await api.post('token/', { username, password })
+    const response = await api.post('login/', { name, password })
     if (response.status === 200) {
       dispatch(loginSuccess(response.data))
       document.cookie = `sessionId=${response.data.access}; path=/; max-age=3600; SameSite=Strict`
@@ -12,7 +12,7 @@ export const loginUser = (username, password) => async (dispatch) => {
     let errorMsg = 'Login failed due to server error'
     if (error.response) {
       if (error.response.status === 401) {
-        errorMsg = 'Username or password is incorrect'
+        errorMsg = 'Name or password is incorrect'
       } else if (error.response.data && error.response.data.detail) {
         errorMsg = error.response.data.detail
       }
@@ -31,11 +31,10 @@ export const logoutUser = () => async (dispatch) => {
   }
 }
 
-export const registerUser = (username, password) => async (dispatch) => {
+export const registerUser = (name, email, password) => async (dispatch) => {
   try {
-    await api.post('register/', { username, password })
+    const loginResponse = await api.post('register/', { name, email, password })
     dispatch(registerSuccess())
-    const loginResponse = await api.post('token/', { username, password })
     if (loginResponse.data && loginResponse.data.access) {
       dispatch(loginSuccess(loginResponse.data))
       document.cookie = `sessionId=${loginResponse.data.access}; path=/; max-age=3600; SameSite=Strict`

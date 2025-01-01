@@ -6,7 +6,7 @@ function Statistics() {
   const [stats, setStats] = useState(null)
 
   useEffect(() => {
-    api.get('user-stats/')
+    api.get('statistics/')
       .then((response) => setStats(response.data))
       .catch((error) => console.error('Error fetching user stats:', error))
   }, [])
