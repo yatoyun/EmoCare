@@ -1,18 +1,36 @@
-import axios from 'axios'
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:8002/',
   headers: {
     'Content-Type': 'application/json',
   },
-})
+  withCredentials: true,
+});
 
-api.interceptors.response.use((response) => {
-  if (response.data && response.data.sessionId) {
-    document.cookie = `sessionId=${response.data.sessionId}; path=/;`
+// Get CSRF token and add it to the header
+api.interceptors.request.use((config) => {
+  if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+    const csrfToken = getCsrfTokenFromCookies();
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
   }
-  return response
-})
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
-export default api
+// Helper function to get CSRF token from cookies
+function getCsrfTokenFromCookies() {
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'csrftoken') {
+      return value;
+    }
+  }
+  return null;
+}
 
+export default api;
