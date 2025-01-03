@@ -39,6 +39,19 @@ paths:
                 type: string
         400:
           description: Bad request (e.g., email already registered)
+  /logout/:
+    post:
+      summary: Logout and invalidate session ID
+      responses:
+        200:
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Clears the session ID cookie
+              schema:
+                type: string
+        401:
+          description: Unauthorized (no active session)
   /login/:
     post:
       summary: Login and retrieve session ID
