@@ -42,3 +42,16 @@ export const registerUser = (name, email, password) => async (dispatch) => {
   }
 }
 
+export const checkAuth = () => async (dispatch) => {
+  try {
+    const response = await api.get('user/');
+    if (response.status === 200) {
+      // set user data in redux store
+      dispatch(loginSuccess(response.data));
+    } else {
+      dispatch(logout());
+    }
+  } catch {
+    dispatch(loginFail());
+  }
+};
