@@ -17,6 +17,13 @@ from apps.users.services.users_services import (
     login_user
 )
 
+###
+# Write HEALTH here because of the path.
+###
+class HealthView(APIView):
+    def get(self, request):
+        return Response({'detail': 'Health check passed'}, status=status.HTTP_200_OK)
+
 
 class RegisterView(APIView):
     def post(self, request):
