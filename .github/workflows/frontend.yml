@@ -1,0 +1,55 @@
+name: CI
+
+# trigger
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.15.0]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: cd frontend && yarn install
+    - run: cd frontend && yarn build
+    - name: Upload build result
+      uses: actions/upload-artifact@v1
+      with:
+        name: build
+        path: frontend/dist/
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download build result
+      uses: actions/download-artifact@v2
+      with:
+        name: build
+    - name: Publish to AWS S3
+      uses: opspresso/action-s3-sync@master
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        FROM_PATH: "frontend/dist/"
+        DEST_PATH: "s3://svelte-spa"
+    - name: Clear cache in CloudFront
+      uses: chetan/invalidate-cloudfront-action@v1.2
+      env:
+        DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION }}
+        PATHS: "/*"
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
