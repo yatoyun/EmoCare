@@ -6,3 +6,4 @@ __pycache__/
 *.pyc
 backend/staticfiles/
 backend/google_cresidentials.json
+*.pem
