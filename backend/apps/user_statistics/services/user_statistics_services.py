@@ -1,4 +1,4 @@
-from google.cloud import language_v1
+from google.cloud import language_v2
 from django.conf import settings
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncDay, TruncWeek
@@ -40,9 +40,10 @@ def get_new_emotion_score(content: str) -> tuple:
     """
     Get the new emotion score for a user.
     """
-    client = language_v1.LanguageServiceClient.from_service_account_json(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    document = language_v1.Document(content=content, type_=language_v1.Document.Type.PLAIN_TEXT, language='ja')
-    response = client.analyze_sentiment(document=document)
+    client = language_v2.LanguageServiceClient.from_service_account_json(settings.GOOGLE_APPLICATION_CREDENTIALS)
+    document = language_v2.Document(content=content, type_=language_v2.Document.Type.PLAIN_TEXT, language_code='ja')
+    encoding_type = language_v2.EncodingType.UTF8
+    response = client.analyze_sentiment(request={"document": document, "encoding_type": encoding_type})
     return response.document_sentiment.score, response.document_sentiment.magnitude
 
 def save_new_statistics(user: User, emotion_score: float, emotion_magnitude: float) -> Statistics:
