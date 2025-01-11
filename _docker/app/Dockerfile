@@ -28,6 +28,10 @@ COPY ./backend/.env $APP_ROOT/.env
 
 ENV PYTHONPATH $APP_ROOT
 
+# [local, prod]
+ARG STAGE
+ARG AWS_REGION
+ARG AWS_SECRET_NAME
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
     && curl -X PUT -d @/tmp/config.json \

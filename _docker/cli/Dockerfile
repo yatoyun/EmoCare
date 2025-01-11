@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y build-essential && \
+    apt-get install -y build-essential curl unzip less && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 
 # Copy project files
 COPY . .
+
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && ./aws/install
 
 # as tty bash
 CMD ["bash", "-i", "-l"]

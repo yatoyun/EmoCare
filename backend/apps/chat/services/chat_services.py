@@ -1,9 +1,9 @@
 from logging import getLogger
 from openai import OpenAI
-from django.conf import settings
 
 from apps.chat.models import ChatMessage
 from apps.user_statistics.services.user_statistics_services import get_recent_avg_statistics
+from apps.common.utils import get_secret_value
 
 logger = getLogger(__name__)
 
@@ -14,7 +14,8 @@ def get_gpt_response(user, prompt: str) -> str:
     """
     Connect to OpenAI API and get a response.
     """
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    OPENAI_API_KEY = get_secret_value("OPENAI_API")
+    client = OpenAI(api_key=OPENAI_API_KEY)
     emotion_score = get_recent_avg_statistics(user, prompt)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages += get_before_messages(user)
