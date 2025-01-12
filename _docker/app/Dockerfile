@@ -8,7 +8,8 @@ WORKDIR $APP_ROOT
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl nginx supervisor build-essential gcc \
-    && rm -rf /var/lib/apt/lists/*d
+    certbot python3-certbot-nginx cron \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./backend/requirements.txt $APP_ROOT/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
@@ -23,21 +24,25 @@ COPY ./backend/supervisord.conf /etc/supervisor/supervisord.conf
 
 COPY --chown=nobody:nogroup ./backend $APP_ROOT
 
-# import env
-COPY ./backend/.env $APP_ROOT/.env
-
 ENV PYTHONPATH $APP_ROOT
 
 # [local, prod]
 ARG STAGE
 ARG AWS_REGION
 ARG AWS_SECRET_NAME
+ARG CLIENT_HOST
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
     && curl -X PUT -d @/tmp/config.json \
     --unix-socket /var/run/control.unit.sock \
     http://localhost/config
 
+# 自動更新スクリプト
+# RUN echo "0 0 * * * certbot renew --quiet && nginx -s reload" > /etc/cron.d/certbot-renew
+# RUN chmod 0644 /etc/cron.d/certbot-renew
+# RUN crontab /etc/cron.d/certbot-renew
+
+# EXPOSE 443
 EXPOSE 8002
 
 CMD ["supervisord", "--nodaemon", "-c", "/etc/supervisor/supervisord.conf"]

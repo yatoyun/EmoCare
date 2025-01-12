@@ -24,6 +24,8 @@ services:
         - STAGE=local
         - AWS_REGION=ap-northeast-1
         - AWS_SECRET_NAME=secrets-test
+        - CLIENT_HOST="http://localhost:5173"
+        - SECRET_KEY=dummy
     ports:
       - "8002:8002"
     networks:
@@ -33,6 +35,9 @@ services:
       - AWS_ACCESS_KEY_ID=dummy
       - AWS_SECRET_ACCESS_KEY=dummy
       - AWS_DEFAULT_REGION=ap-northeast-1
+      - AWS_SECRET_NAME=secrets-test
+      - CLIENT_HOST="http://localhost:5173"
+      - SECRET_KEY=dummy
     env_file:
       - ./backend/.env
     volumes:
