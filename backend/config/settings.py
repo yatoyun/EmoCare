@@ -137,78 +137,25 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+######## security settings ########
+SECURE_PROXY_SSL_HEADER = None # HTTPを使うため、不要
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-######## security settings ########
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = False # HTTPSへのリダイレクトを無効化
 X_FRAME_OPTIONS = "DENY"
 SECURE_BROWSER_XSS_FILTER = True
-if config.STAGE == "prod":
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'Strict'
-    CSRF_COOKIE_SAMESITE = 'Strict'
-    SESSION_COOKIE_HTTPONLY = True
-    ##
-    # CSRF_COOKIE_HTTPONLYがfalseでないと、X-CSRFToken ヘッダーによるCSRFトークンの送信ができない
-    ##
-    CSRF_COOKIE_HTTPONLY = False
+SECURE_SSL_REDIRECT = False  # HTTPで動作させる場合も無効化
+SESSION_COOKIE_SECURE = False  # HTTPでクッキーを送信するためFalse
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Strict'  # 必要に応じて変更
+CSRF_COOKIE_SAMESITE = 'Strict'
+SECURE_HSTS_SECONDS = 0  # HSTSを無効化
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+SESSION_COOKIE_HTTPONLY = True
+##
+# CSRF_COOKIE_HTTPONLYがfalseでないと、X-CSRFToken ヘッダーによるCSRFトークンの送信ができない
+##
+CSRF_COOKIE_HTTPONLY = False
 
-    SECURE_HSTS_SECONDS = 31536000  # HSTSを有効化
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_BROWSER_XSS_FILTER = True
-
-else:
-    # CookieがHTTPS経由でのみ送信される設定を無効化
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-
-    # SameSite属性の設定（StrictのままでもOK）
-    SESSION_COOKIE_SAMESITE = "Strict"
-    CSRF_COOKIE_SAMESITE = "Strict"
-
-    # HSTSを無効化
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
-
-    # httpOnly
-    SESSION_COOKIE_HTTPONLY = True
-    ##
-    # CSRF_COOKIE_HTTPONLYがfalseでないと、X-CSRFToken ヘッダーによるCSRFトークンの送信ができない
-    ##
-    CSRF_COOKIE_HTTPONLY = False
-
-# logging
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'verbose': {
-#             'format': '{levelname} {asctime} {module} {message}',
-#             'style': '{',
-#         },
-#         'simple': {
-#             'format': '{levelname} {message}',
-#             'style': '{',
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'INFO',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'verbose',
-#         },
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['console', 'file'],
-#             'level': 'INFO',
-#             'propagate': True,
-#         },
-#     },
-# }
