@@ -167,3 +167,13 @@ backend/
 └── validations // 以前のモジュール、今後はusersに統合
     └── password_strength_validator.py
 ```
+
+## Local環境
+cli環境で以下のコマンドを実行してください。
+```bash
+export ENDPOINT_URL=http://localstack:4566
+aws --endpoint-url=$ENDPOINT_URL secretsmanager create-secret \
+    --name secrets-test \
+    --description "Secret for Google application credentials" \
+    --secret-string file://backend/local_secrets.json
+```

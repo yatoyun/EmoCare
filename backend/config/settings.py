@@ -10,38 +10,19 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
-from datetime import timedelta
+from pathlib import Path
+
+from config.config import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# import os.getenv file
-with open("./.env", "r") as f:
-    for line in f:
-        key, value = line.strip().split("=",1)
-        os.environ[key] = value
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
-
-
-# test
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+# set secret values
+SECRET_KEY = config.SECRET_KEY
+DEBUG = config.DEBUG
 
 # Application definition
-
 INSTALLED_APPS = [
     "apps.users",
     "apps.chat",
@@ -53,17 +34,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
-    "rest_framework",
-    "rest_framework.authtoken",
-    "rest_framework_simplejwt",
 ]
 
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        'rest_framework.authentication.SessionAuthentication',
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
 }
 
 MIDDLEWARE = [
@@ -79,10 +55,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+# HOSTS settings
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
-CORS_ORIGIN_WHITELIST = os.getenv("CORS_ORIGIN_WHITELIST").split(",")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(",")
+CORS_ALLOWED_ORIGINS = config.CORS_ALLOWED_ORIGINS
+CORS_ORIGIN_WHITELIST = config.CORS_ORIGIN_WHITELIST
+CSRF_TRUSTED_ORIGINS = config.CSRF_TRUSTED_ORIGINS
 
 TEMPLATES = [
     {
@@ -159,50 +137,25 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+######## security settings ########
+SECURE_PROXY_SSL_HEADER = None # HTTPを使うため、不要
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-######## セキュリティ設定 ########
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SAMESITE = 'Strict'
-# CSRF_COOKIE_SAMESITE = 'Strict'
-# SESSION_COOKIE_HTTPONLY = True
-# CSRF_COOKIE_HTTPONLY = True
-
-# SECURE_HSTS_SECONDS = 31536000  # HSTSを有効化
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_BROWSER_XSS_FILTER = True
-# X_FRAME_OPTIONS = "DENY"
-
-######## セキュリティ関連の設定（開発用） ########
-
-# HTTPS経由での接続を強制しない
-SECURE_SSL_REDIRECT = False
-
-# CookieがHTTPS経由でのみ送信される設定を無効化
-SESSION_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False # HTTPSへのリダイレクトを無効化
+X_FRAME_OPTIONS = "DENY"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_SSL_REDIRECT = False  # HTTPで動作させる場合も無効化
+SESSION_COOKIE_SECURE = False  # HTTPでクッキーを送信するためFalse
 CSRF_COOKIE_SECURE = False
-
-# SameSite属性の設定（StrictのままでもOK）
-SESSION_COOKIE_SAMESITE = "Strict"
-CSRF_COOKIE_SAMESITE = "Strict"
-
-# HSTSを無効化
-SECURE_HSTS_SECONDS = 0
+SESSION_COOKIE_SAMESITE = 'Strict'  # 必要に応じて変更
+CSRF_COOKIE_SAMESITE = 'Strict'
+SECURE_HSTS_SECONDS = 0  # HSTSを無効化
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
-
-# XSSフィルタとクリックジャッキング防止設定（有効のまま）
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = "DENY"
-
-# httpOnly
 SESSION_COOKIE_HTTPONLY = True
 ##
 # CSRF_COOKIE_HTTPONLYがfalseでないと、X-CSRFToken ヘッダーによるCSRFトークンの送信ができない
 ##
 CSRF_COOKIE_HTTPONLY = False
+
