@@ -27,7 +27,7 @@ services:
         - CLIENT_HOST=http://localhost:5173
         - SECRET_KEY=dummy
     ports:
-      - "8002:8002"
+      - "80:80"
     networks:
       - default
     environment:
