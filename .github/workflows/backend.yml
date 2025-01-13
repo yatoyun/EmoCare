@@ -79,7 +79,7 @@ jobs:
         id: migration-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: aws/task-definition.json
+          task-definition: task-definition.json
           container-name: migrate
           image: emocare:latest
 
@@ -87,7 +87,7 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-app-container.outputs.task-definition }}
-          service: emocare
+          service: emocareService
           cluster: emocareCluster
           wait-for-service-stability: true
 
