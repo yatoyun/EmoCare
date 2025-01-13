@@ -75,14 +75,6 @@ jobs:
         run: |
           sed -i "s|REPLACE_WITH_ECR_REPO_URI|${ECR_REPO_URI}|g" task-definition.json
 
-      - name: Render Amazon ECS migration task definition
-        id: migration-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: migrate
-          image: emocare:latest
-
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
