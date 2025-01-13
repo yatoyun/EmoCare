@@ -47,7 +47,7 @@ jobs:
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG backend/. \
-            -f __docker/app/Dockerfile \
+            -f _docker/app/Dockerfile \
             --build-arg STAGE=prod \
             --build-arg AWS_REGION=ap-northeast-1 \
             --build-arg AWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }} \
