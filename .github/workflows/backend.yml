@@ -47,6 +47,7 @@ jobs:
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . \
+            --platform linux/amd64 \
             -f _docker/app/Dockerfile \
             --build-arg STAGE=prod \
             --build-arg AWS_REGION=ap-northeast-1 \
