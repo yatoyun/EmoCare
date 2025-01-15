@@ -70,12 +70,6 @@ jobs:
           container-name: emocare
           image: emocare:latest
 
-      - name: Deploy to ECS
-        env:
-          ECR_REPO_URI: ${{ secrets.ECR_REPO_URI }}
-        run: |
-          sed -i "s|REPLACE_WITH_ECR_REPO_URI|${ECR_REPO_URI}|g" task-definition.json
-
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:

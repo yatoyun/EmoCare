@@ -44,6 +44,6 @@ RUN set -x && unitd \
     --unix-socket /var/run/control.unit.sock \
     http://localhost/config
 
-EXPOSE 80
+EXPOSE 8002
 
 CMD ["supervisord", "--nodaemon", "-c", "/etc/supervisor/supervisord.conf"]
