@@ -53,27 +53,16 @@ jobs:
             --build-arg AWS_REGION=ap-northeast-1 \
             --build-arg AWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }} \
             --build-arg CLIENT_HOST=${{ secrets.CLIENT_HOST }} \
-            --build-arg SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            --build-arg SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            --volume /tmp/docker-cache:/var/lib/docker
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # 7. Download the current task definition
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition --task-definition emocareTaskDefinition --query taskDefinition > task-definition.json
-
-      - name: Render Amazon ECS app task definition with app container
-        id: render-app-container
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: emocare
-          image: emocare:latest
-
+      # 7. Deploy to Amazon ECS service
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ${{ steps.render-app-container.outputs.task-definition }}
+          task-definition: emocareTaskDefinition
           service: emocareService
           cluster: emocareCluster
           wait-for-service-stability: true
