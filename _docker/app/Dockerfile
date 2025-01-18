@@ -38,6 +38,10 @@ ENV AWS_SECRET_NAME $AWS_SECRET_NAME
 ENV CLIENT_HOST $CLIENT_HOST
 ENV SECRET_KEY $SECRET_KEY
 
+# migrate database
+RUN (python manage.py makemigrations && python manage.py migrate --noinput) || echo "Migrations already applied or not necessary."
+RUN chown nobody:nogroup $APP_ROOT/db/db.sqlite3
+
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
     && curl -X PUT -d @/tmp/config.json \
