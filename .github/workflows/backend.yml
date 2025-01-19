@@ -59,7 +59,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition my-task-definition-family \
+          aws ecs describe-task-definition --task-definition emocareTaskDefinition \
             --query taskDefinition > task-definition.json
 
       - name: Deploy to Amazon ECS service
