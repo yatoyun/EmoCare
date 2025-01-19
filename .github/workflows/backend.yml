@@ -57,11 +57,15 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # 7. Deploy to Amazon ECS service
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition my-task-definition-family \
+            --query taskDefinition > task-definition.json
+
       - name: Deploy to Amazon ECS service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
         with:
-          task-definition: emocareTaskDefinition
+          task-definition: task-definition.json
           service: emocareService
           cluster: emocareCluster
           wait-for-service-stability: true
