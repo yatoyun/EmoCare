@@ -3,6 +3,7 @@ from logging import getLogger
 
 STAGE = os.getenv("STAGE")
 SECRET_KEY = os.getenv("SECRET_KEY")
+AWS_REGION = os.getenv("AWS_REGION")
 client_hosts = os.getenv("CLIENT_HOST").split(",")
 
 class _Config:
@@ -13,6 +14,8 @@ class _Config:
         self.CORS_ALLOWED_ORIGINS = client_hosts
         self.CORS_ORIGIN_WHITELIST = client_hosts
         self.CSRF_TRUSTED_ORIGINS = client_hosts
+        self.CORS_ALLOWED_ORIGIN_REGEXES = [fr"^https://.*\.{AWS_REGION}\.elb\.amazonaws\.com$"]
+
         if STAGE == "local":
             self.DEBUG = True
         else:
