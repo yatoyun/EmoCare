@@ -21,8 +21,8 @@ def get_secret_values() -> dict:
     # Check is local
     is_local = (STAGE == "local")
 
+    REGION = os.getenv("AWS_REGION")
     if is_local:
-        REGION = os.getenv("AWS_REGION")
         _client = boto3.client(
             "secretsmanager",
             region_name=REGION,
@@ -31,7 +31,7 @@ def get_secret_values() -> dict:
             aws_secret_access_key="dummy",
         )
     else:
-        _client = boto3.client("secretsmanager")
+        _client = boto3.client("secretsmanager", region_name=REGION)
 
     try:
         # Retrieve secret value from SecretsManager
