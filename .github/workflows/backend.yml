@@ -62,10 +62,18 @@ jobs:
           aws ecs describe-task-definition --task-definition emocareTaskDefinition \
             --query taskDefinition > task-definition.json
 
+      # Delete because instead of Fargete we use EC2 instance
       - name: Delete ECS Service
         run: |
           aws ecs update-service --cluster emocareCluster --service emocareService --desired-count 0
           aws ecs delete-service --cluster emocareCluster --service emocareService --force
+
+      - name: Wait for ECS Service Deletion
+        run: |
+          while aws ecs describe-services --cluster emocareCluster --services emocareService | grep -q '"status": "DRAINING"'; do
+            echo "Waiting for service to be deleted..."
+            sleep 10
+          done
 
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
