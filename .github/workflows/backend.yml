@@ -64,8 +64,8 @@ jobs:
 
       - name: Delete ECS Service
         run: |
-          aws ecs update-service --cluster your-cluster-name --service your-service-name --desired-count 0
-          aws ecs delete-service --cluster your-cluster-name --service your-service-name --force
+          aws ecs update-service --cluster emocareCluster --service emocareService --desired-count 0
+          aws ecs delete-service --cluster emocareCluster --service emocareService --force
 
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
