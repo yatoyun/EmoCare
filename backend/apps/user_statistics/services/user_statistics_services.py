@@ -7,6 +7,7 @@ from scipy import stats
 from apps.user_statistics.models import Statistics
 from apps.chat.models import ChatMessage
 from apps.users.models import User
+from apps.common.utils import get_secret_value
 
 AVG_MESSAGES_LIMIT = 5
 
@@ -40,7 +41,8 @@ def get_new_emotion_score(content: str) -> tuple:
     """
     Get the new emotion score for a user.
     """
-    client = language_v2.LanguageServiceClient.from_service_account_json(settings.GOOGLE_APPLICATION_CREDENTIALS)
+    GOOGLE_APPLICATION_CREDENTIALS = get_secret_value("GOOGLE_APPLICATION_CREDENTIALS")
+    client = language_v2.LanguageServiceClient.from_service_account_info(GOOGLE_APPLICATION_CREDENTIALS)
     document = language_v2.Document(content=content, type_=language_v2.Document.Type.PLAIN_TEXT, language_code='ja')
     encoding_type = language_v2.EncodingType.UTF8
     response = client.analyze_sentiment(request={"document": document, "encoding_type": encoding_type})

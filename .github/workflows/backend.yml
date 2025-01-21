@@ -1,0 +1,99 @@
+name: CD
+
+on:
+  push:
+    branches: [ main, test ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 3. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      # 4. Setup Python for awscli
+      - name: Setup Python for AWS CLI
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+
+      - name: Install AWS CLI
+        run: pip install awscli
+
+      # 5. Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 6. Build, tag, and push DRF image to Amazon ECR
+      - name: Build, tag, and push DRF image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: emocare
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . \
+            --platform linux/x86_64 \
+            -f _docker/app/Dockerfile \
+            --build-arg STAGE=prod \
+            --build-arg AWS_REGION=ap-northeast-1 \
+            --build-arg AWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }} \
+            --build-arg CLIENT_HOST=${{ secrets.CLIENT_HOST }} \
+            --build-arg SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition emocareTaskDefinition \
+            --query taskDefinition > task-definition.json
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
+        with:
+          task-definition: task-definition.json
+          service: emocareService
+          cluster: emocareCluster
+          wait-for-service-stability: true
+
+      # 9. Get EC2 Instance ID
+      - name: Get EC2 Instance ID
+        id: get-ec2-instance
+        run: |
+          INSTANCE_ID=$(aws ecs describe-container-instances \
+            --cluster emocareCluster \
+            --container-instances $(aws ecs list-container-instances \
+              --cluster emocareCluster \
+              --query 'containerInstanceArns[0]' \
+              --output text) \
+            --query 'containerInstances[0].ec2InstanceId' \
+            --output text)
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+
+      # # 11. Deploy to Amazon ECS service
+      # - name: Run Migrations
+      #   id: run-task
+      #   uses: yyoshiki41/ecs-run-task-action@v0.0.9
+      #   with:
+      #     cluster: emocareCluster
+      #     task-definition: ${{ steps.migration-task-def.outputs.task-definition }}
+      #     task-definition-family: migrate
+      #     launch-type: "EC2"
+      #     subnets: '["subnet-0138e1f7d9120a3c5"]'
+      #     security-groups: '["sg-012ca51c550450a5d"]'
+      #     container-name: emocare-migrate
+      #     command: '["sh", "-c", "flask db upgrade"]'

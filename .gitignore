@@ -2,8 +2,10 @@ backend/.env
 backend/db/db.sqlite3
 backend/supervisord.pid
 backend/supervisord.log
+backend/local_secrets.json
 __pycache__/
 *.pyc
 backend/staticfiles/
 backend/google_cresidentials.json
 *.pem
+volume/

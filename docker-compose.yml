@@ -1,11 +1,41 @@
 services:
+  localstack:
+    container_name: localstack
+    image: localstack/localstack:3.4
+    ports:
+      - "4566:4566"
+      - "4510-4599:4510-4599"
+    environment:
+      - DEBUG=true
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - PERSISTENCE=1
+      - DEFAULT_REGION=ap-northeast-1
+    networks:
+      - default
+    volumes:
+      - ./volume:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
   backend:
     platform: linux/x86_64
     build:
       context: .
       dockerfile: ./_docker/app/Dockerfile
+      args:
+        - STAGE=local
+        - AWS_REGION=ap-northeast-1
+        - AWS_SECRET_NAME=secrets-test
+        - CLIENT_HOST=http://localhost:5173
+        - SECRET_KEY=dummy
     ports:
       - "8002:8002"
+    networks:
+      - default
+    environment:
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_DEFAULT_REGION=ap-northeast-1
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/usr/src/app
 
@@ -13,6 +43,18 @@ services:
     build:
       context: .
       dockerfile: ./_docker/cli/Dockerfile
+    networks:
+      - default
+    environment:
+      - STAGE=local
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_DEFAULT_REGION=ap-northeast-1
+      - CLIENT_HOST=http://localhost:5173
+      - SECRET_KEY=dummy
+      - AWS_SECRET_NAME=secrets-test
+    env_file:
+      - ./backend/.env
     volumes:
       - .:/app
     tty: true

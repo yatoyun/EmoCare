@@ -7,7 +7,7 @@
     "applications": {
         "app": {
             "type": "python",
-            "processes": 24,
+            "processes": 4,
             "path": "/usr/src/app",
             "module": "config.wsgi",
             "user": "nobody",
