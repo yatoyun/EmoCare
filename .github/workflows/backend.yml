@@ -62,13 +62,21 @@ jobs:
           aws ecs describe-task-definition --task-definition emocareTaskDefinition \
             --query taskDefinition > task-definition.json
 
+      - name: Delete ECS Service
+        uses: scribd/amazon-ecs-service-action@v1.1.49
+        with:
+          spec: |
+            {"cluster": "emocareCluster", "serviceName": "emocareService"}
+          action: delete
+          force-delete: delete
+
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
         with:
           task-definition: task-definition.json
           service: emocareService
           cluster: emocareCluster
-          wait-for-service-stability: true
+          wait-for-service-stability: false
 
       # 9. Get EC2 Instance ID
       - name: Get EC2 Instance ID
