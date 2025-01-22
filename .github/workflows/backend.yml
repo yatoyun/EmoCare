@@ -57,43 +57,35 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Get the ASG name
+        run: |
+          ECS_CLUSTER_NAME=emocareCluster
+          CAPACITY_PROVIDER_NAME=$(aws ecs describe-clusters --clusters $ECS_CLUSTER_NAME --include ATTACHMENTS --query 'clusters[0].capacityProviders[0]' --output text)
+          AUTO_SCALING_GROUP_ARN=$(aws ecs describe-capacity-providers --capacity-providers $CAPACITY_PROVIDER_NAME --query 'capacityProviders[0].autoScalingGroupProvider.autoScalingGroupArn' --output text)
+          AUTO_SCALING_GROUP_NAME=$(basename $AUTO_SCALING_GROUP_ARN)
+          echo "ASG_NAME=$AUTO_SCALING_GROUP_NAME" >> $GITHUB_ENV
+
+      - name: Scale up the ASG
+        run: |
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name $ASG_NAME --min-size 2 --desired-capacity 2
+
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition emocareTaskDefinition \
             --query taskDefinition > task-definition.json
 
       - name: Deploy to Amazon ECS service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
-        with:
-          task-definition: task-definition.json
-          service: emocareService
-          cluster: emocareCluster
-          wait-for-service-stability: true
-
-      # 9. Get EC2 Instance ID
-      - name: Get EC2 Instance ID
-        id: get-ec2-instance
         run: |
-          INSTANCE_ID=$(aws ecs describe-container-instances \
+          aws ecs update-service \
             --cluster emocareCluster \
-            --container-instances $(aws ecs list-container-instances \
-              --cluster emocareCluster \
-              --query 'containerInstanceArns[0]' \
-              --output text) \
-            --query 'containerInstances[0].ec2InstanceId' \
-            --output text)
-          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+            --service emocareService \
+            --force-new-deployment
+      - name: Wait for the deployment to finish
+        run: |
+          aws ecs wait services-stable \
+            --cluster emocareCluster \
+            --services emocareService
 
-      # # 11. Deploy to Amazon ECS service
-      # - name: Run Migrations
-      #   id: run-task
-      #   uses: yyoshiki41/ecs-run-task-action@v0.0.9
-      #   with:
-      #     cluster: emocareCluster
-      #     task-definition: ${{ steps.migration-task-def.outputs.task-definition }}
-      #     task-definition-family: migrate
-      #     launch-type: "EC2"
-      #     subnets: '["subnet-0138e1f7d9120a3c5"]'
-      #     security-groups: '["sg-012ca51c550450a5d"]'
-      #     container-name: emocare-migrate
-      #     command: '["sh", "-c", "flask db upgrade"]'
+      - name: Scale down the ASG
+        run: |
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name $ASG_NAME --min-size 1 --desired-capacity 1
