@@ -12,20 +12,20 @@ class TestUserRegistration:
         data = {
             'name': 'testuser',
             'email': 'test@example.com',
-            'password': 'secret'
+            'password': 'password'
         }
         response = client.post(url, data, format='json')
         assert response.status_code == 201
         assert User.objects.filter(email='test@example.com').exists()
 
     def test_register_email_already_exists(self):
-        User.objects.create_user(name='exists', email='exists@example.com', password='secret')
+        User.objects.create_user(name='exists', email='exists@example.com', password='password')
         client = APIClient()
         url = reverse('users:register')
         data = {
             'name': 'testuser2',
             'email': 'exists@example.com',
-            'password': 'secret'
+            'password': 'password'
         }
         response = client.post(url, data, format='json')
         assert response.status_code == 400
@@ -33,12 +33,12 @@ class TestUserRegistration:
 @pytest.mark.django_db
 class TestUserLogin:
     def test_login_success(self):
-        User.objects.create_user(name='loginuser', email='login@example.com', password='secret')
+        User.objects.create_user(name='loginuser', email='login@example.com', password='password')
         client = APIClient()
         url = reverse('users:login')
         data = {
             'email': 'login@example.com',
-            'password': 'secret'
+            'password': 'password'
         }
         response = client.post(url, data, format='json')
         assert response.status_code == 200
@@ -48,7 +48,7 @@ class TestUserLogin:
         client = APIClient()
         url = reverse('users:login')
         data = {
-            'password': 'secret'
+            'password': 'password'
         }
         response = client.post(url, data, format='json')
         assert response.status_code == 400

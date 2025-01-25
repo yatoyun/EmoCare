@@ -1,5 +1,6 @@
 from logging import getLogger
 from openai import OpenAI
+# from openai.error import OpenAIError  # 必要に応じて追加
 
 from apps.chat.models import ChatMessage
 from apps.user_statistics.services.user_statistics_services import get_recent_avg_statistics
@@ -12,22 +13,46 @@ SYSTEM_PROMPT = "あなたは相手の心を気遣うことが上手く、メン
 
 def get_gpt_response(user, prompt: str) -> str:
     """
-    Connect to OpenAI API and get a response.
+    OpenAI APIを使用してGPTからの応答を取得します。
+
+    Args:
+        user: ユーザーオブジェクト
+        prompt (str): ユーザーからの入力メッセージ
+
+    Returns:
+        str: GPTからの応答テキスト
+
+    Raises:
+        ValueError: API keyが取得できない場合
+        OpenAIError: OpenAI APIからエラーが返された場合
     """
-    OPENAI_API_KEY = get_secret_value("OPENAI_API")
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    emotion_score = get_recent_avg_statistics(user, prompt)
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    messages += get_before_messages(user)
-    messages += [{"role": "user", "content": f"{prompt}:emotion_score={emotion_score}"}]
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=messages,
-        max_tokens=MAX_TOKENS,
-        n=1,
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
+    try:
+        OPENAI_API_KEY = get_secret_value("OPENAI_API")
+        if not OPENAI_API_KEY:
+            raise ValueError("OpenAI API key not found")
+
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        emotion_score = get_recent_avg_statistics(user, prompt)
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        messages.extend(get_before_messages(user))
+        messages.append({"role": "user", "content": f"{prompt}:emotion_score={emotion_score}"})
+
+        logger.info(f"Sending request to GPT for user {user.user_id}")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            max_tokens=MAX_TOKENS,
+            n=1,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"OpenAI API error for user {user.user_id}: {e}")
+        raise
 
 def save_chat_message(user, user_message: str, gpt_response: str) -> ChatMessage:
     """
@@ -42,15 +67,21 @@ def save_chat_message(user, user_message: str, gpt_response: str) -> ChatMessage
 
 def get_before_messages(user):
     """
-    Get all chat messages from the database.
+    ユーザーの過去のチャット履歴を取得してOpenAI APIのメッセージ形式に変換します。
+
+    Args:
+        user: ユーザーオブジェクト
+
+    Returns:
+        list: フォーマット済みのメッセージリスト
     """
     messages = ChatMessage.objects.filter(user=user)
     formatted_messages = []
     for message in messages:
-        formatted_messages += [
-            {"role": "user", "content": [{ "type": "text", "text": message.user_message }]},
-            {"role": "assistant", "content": [{ "type": "text", "text": message.gpt_response }]}
-        ]
+        formatted_messages.extend([
+            {"role": "user", "content": message.user_message},
+            {"role": "assistant", "content": message.gpt_response}
+        ])
     return formatted_messages
 
 def get_chat_history(user, limit: int = -1) -> ChatMessage:
