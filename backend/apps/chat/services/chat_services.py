@@ -48,10 +48,10 @@ def get_gpt_response(user, prompt: str) -> str:
         return response.choices[0].message.content
 
     except ValueError as e:
-        logger.error(f"Configuration error: {e}")
+        logger.error(f"Configuration error: {repr(e)}")
         raise
     except Exception as e:
-        logger.error(f"OpenAI API error for user {user.user_id}: {e}")
+        logger.error(f"OpenAI API error for user {user.user_id}: {repr(e)}")
         raise
 
 def save_chat_message(user, user_message: str, gpt_response: str) -> ChatMessage:

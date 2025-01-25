@@ -21,7 +21,7 @@ def get_client_hosts() -> List[str]:
     try:
         return hosts.split(",")
     except Exception as e:
-        logger.error(f"CLIENT_HOSTの解析に失敗: {e}")
+        logger.error(f"CLIENT_HOSTの解析に失敗: {repr(e)}")
         return ["http://localhost:3000"]
 
 client_hosts = get_client_hosts()
