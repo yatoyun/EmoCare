@@ -1,67 +1,78 @@
 import os
 import logging
+from typing import Dict, Optional
 import boto3
 import json
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 
-STAGE = os.getenv("STAGE")
-AWS_SECRET_NAME = os.getenv("AWS_SECRET_NAME")
+# AWS関連の設定
+AWS_CONFIG = {
+    "REGION": os.getenv("AWS_REGION", "ap-northeast-1"),
+    "SECRET_NAME": os.getenv("AWS_SECRET_NAME"),
+    "STAGE": os.getenv("STAGE", "production"),
+    "LOCALSTACK_URL": "http://localstack:4566"
+}
 
-def get_secret_values() -> dict:
-    """
-    Retrieve secrets from AWS Secrets Manager or LocalStack.
-    If STAGE is 'local', use LocalStack, otherwise assume production environment.
-
-    :return: Secret dictionary
-    :raises Exception: Throws an exception if retrieval fails
-    """
-
-    # Check is local
-    is_local = (STAGE == "local")
-
-    REGION = os.getenv("AWS_REGION")
-    if is_local:
-        _client = boto3.client(
+def _create_secrets_client() -> boto3.client:
+    """SecretsManagerのクライアントを作成します。"""
+    if AWS_CONFIG["STAGE"] == "local":
+        return boto3.client(
             "secretsmanager",
-            region_name=REGION,
-            endpoint_url="http://localstack:4566",
+            region_name=AWS_CONFIG["REGION"],
+            endpoint_url=AWS_CONFIG["LOCALSTACK_URL"],
             aws_access_key_id="dummy",
-            aws_secret_access_key="dummy",
+            aws_secret_access_key="dummy"
         )
-    else:
-        _client = boto3.client("secretsmanager", region_name=REGION)
+    return boto3.client("secretsmanager", region_name=AWS_CONFIG["REGION"])
+
+def get_secret_values() -> Dict[str, str]:
+    """シークレットマネージャーから全ての秘密情報を取得します。
+
+    Returns:
+        Dict[str, str]: シークレット情報の辞書
+
+    Raises:
+        ValueError: 環境変数が未設定の場合
+        ClientError: AWS API呼び出しエラーの場合
+    """
+    if not AWS_CONFIG["SECRET_NAME"]:
+        raise ValueError("AWS_SECRET_NAME environment variable is not set")
 
     try:
-        # Retrieve secret value from SecretsManager
-        response = _client.get_secret_value(SecretId=AWS_SECRET_NAME)
+        client = _create_secrets_client()
+        response = client.get_secret_value(SecretId=AWS_CONFIG["SECRET_NAME"])
     except ClientError as e:
-        # Log error and convert to application-specific exception
-        logger.exception(f"Failed to retrieve secret '{AWS_SECRET_NAME}': {e}")
-        raise Exception(f"Unable to retrieve secret: {AWS_SECRET_NAME}") from e
+        logger.error(
+            f"Failed to retrieve secret '{AWS_CONFIG['SECRET_NAME']}'. "
+            f"Error code: {e.response.get('Error', {}).get('Code', 'Unknown')}"
+        )
+        raise
 
-    # Return secret string
-    if "SecretString" in response:
-        return json.loads(response["SecretString"])
-    else:
-        # If stored in a non-string format like SecretBinary,
-        # implement decoding as needed
-        raise Exception(f"Secret '{AWS_SECRET_NAME}' is not a string type.")
+    if "SecretString" not in response:
+        raise ValueError(f"Secret '{AWS_CONFIG['SECRET_NAME']}' does not contain a string value")
+
+    return json.loads(response["SecretString"])
 
 def get_secret_value(key: str) -> str:
-    """
-    Retrieve a specific key from a secret stored in AWS Secrets Manager or LocalStack.
+    """特定のキーの秘密情報を取得します。
 
-    :param AWS_SECRET_NAME: Name of the secret to retrieve (SecretId)
-    :param key: Key to retrieve from the secret
-    :param AWS_SECRET_NAME: Region name (default: ap-northeast-1)
-    :return: Secret value for the specified key
-    :raises Exception: Throws an exception if retrieval fails
+    Args:
+        key: 取得するシークレットのキー
+
+    Returns:
+        str: シークレット値
+
+    Raises:
+        ValueError: キーが無効な場合
     """
+    if not key:
+        raise ValueError("Key parameter cannot be empty")
+
     secret_dict = get_secret_values()
+    
+    if key not in secret_dict:
+        raise ValueError(f"Key '{key}' not found in secret '{AWS_CONFIG['SECRET_NAME']}'")
 
-    if key in secret_dict:
-        return secret_dict[key]
-    else:
-        raise Exception(f"Key '{key}' not found in secret '{AWS_SECRET_NAME}'.")
+    return secret_dict[key]
