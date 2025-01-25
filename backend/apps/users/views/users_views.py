@@ -43,9 +43,9 @@ class RegisterView(APIView):
         try:
             user = register_user(**serializer.validated_data)
         except ValueError as e:
-            logger.error(f"Registration failed: {str(e)}")
+            logger.error(f"Registration failed: {e}")
             return Response({
-                'detail': str(e),
+                'detail': e,
                 'error_type': 'registration_error'
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,9 +75,9 @@ class LoginView(APIView):
             logger.info(f"User logged in successfully: {user.email}")
             return Response({'detail': 'Login successful'}, status=status.HTTP_200_OK)
         except ValueError as e:
-            logger.error(f"Login failed: {str(e)}")
+            logger.error(f"Login failed: {e}")
             return Response({
-                'detail': str(e),
+                'detail': e,
                 'error_type': 'authentication_error'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
