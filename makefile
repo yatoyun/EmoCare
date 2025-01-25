@@ -10,3 +10,6 @@ down:
 clean:
 	docker compose down --remove-orphans --volumes --rmi all
 	docker compose rm -f
+
+cli:
+	docker compose exec cli bash -l
