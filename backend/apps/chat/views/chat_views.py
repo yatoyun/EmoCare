@@ -43,7 +43,7 @@ class ChatView(APIView):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error(f"Error in ChatView: {e}")
+            logger.error(f"Error in ChatView: {repr(e)}")
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -59,5 +59,5 @@ class ChatHistoryView(APIView):
             serializer = ChatMessageSerializer(history_qs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Error in ChatHistoryView: {e}")
+            logger.error(f"Error in ChatHistoryView: {repr(e)}")
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

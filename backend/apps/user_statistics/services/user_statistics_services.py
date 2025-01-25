@@ -1,6 +1,7 @@
 import math
 from typing import List, Dict, Any, Optional, Tuple
 import logging
+import traceback
 from google.cloud import language_v2
 from django.conf import settings
 from django.db.models import Avg, Count, Q
@@ -63,7 +64,7 @@ def get_recent_avg_statistics(user: User, text: str) -> float:
             avg_score /= len(recent_statistics_scores) + 1
         return round(avg_score, 2)
     except Exception as e:
-        logger.error(f"Error calculating recent average statistics: {str(e)}")
+        logger.error(f"Error calculating recent average statistics: {repr(e)}")
         raise
 
 def get_new_emotion_score(content: str) -> Tuple[float, float]:
@@ -93,7 +94,10 @@ def get_new_emotion_score(content: str) -> Tuple[float, float]:
         )
         return response.document_sentiment.score, response.document_sentiment.magnitude
     except Exception as e:
-        logger.error(f"Error analyzing sentiment: {str(e)}")
+        logger.error(
+            f"Error analyzing sentiment: {repr(e)}"
+            f"Stack trace: {traceback.format_exc()}"
+        )
         raise
 
 def save_new_statistics(user: User, emotion_score: float, emotion_magnitude: float) -> Statistics:
@@ -162,7 +166,7 @@ def gather_user_statistics(user: User) -> Dict[str, Any]:
             "weekly_emotion_stats": weekly_emotion_stats,
         }
     except Exception as e:
-        logger.error(f"Error gathering user statistics: {str(e)}")
+        logger.error(f"Error gathering user statistics: {repr(e)}")
         raise
 
 def _get_daily_stats(queryset) -> List[Dict]:

@@ -43,7 +43,7 @@ class RegisterView(APIView):
         try:
             user = register_user(**serializer.validated_data)
         except ValueError as e:
-            logger.error(f"Registration failed: {str(e)}")
+            logger.error(f"Registration failed: {repr(e)}")
             return Response({
                 'detail': str(e),
                 'error_type': 'registration_error'
@@ -75,7 +75,7 @@ class LoginView(APIView):
             logger.info(f"User logged in successfully: {user.email}")
             return Response({'detail': 'Login successful'}, status=status.HTTP_200_OK)
         except ValueError as e:
-            logger.error(f"Login failed: {str(e)}")
+            logger.error(f"Login failed: {repr(e)}")
             return Response({
                 'detail': str(e),
                 'error_type': 'authentication_error'
