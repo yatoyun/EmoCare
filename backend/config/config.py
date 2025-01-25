@@ -1,10 +1,30 @@
 import os
 from logging import getLogger
+from typing import List
 
-STAGE = os.getenv("STAGE")
-SECRET_KEY = os.getenv("SECRET_KEY")
-AWS_REGION = os.getenv("AWS_REGION")
-client_hosts = os.getenv("CLIENT_HOST").split(",")
+logger = getLogger(__name__)
+
+def get_env_variable(name: str, default: str = None) -> str:
+    value = os.getenv(name)
+    if value is None:
+        if default is None:
+            raise ValueError(f"環境変数{name}が設定されていません")
+        return default
+    return value
+
+STAGE = get_env_variable("STAGE", "development")
+SECRET_KEY = get_env_variable("SECRET_KEY")
+AWS_REGION = get_env_variable("AWS_REGION", "ap-northeast-1")
+
+def get_client_hosts() -> List[str]:
+    hosts = get_env_variable("CLIENT_HOST", "http://localhost:3000")
+    try:
+        return hosts.split(",")
+    except Exception as e:
+        logger.error(f"CLIENT_HOSTの解析に失敗: {e}")
+        return ["http://localhost:3000"]
+
+client_hosts = get_client_hosts()
 
 class _Config:
     def __init__(self):
@@ -20,7 +40,7 @@ class _Config:
             self.DEBUG = True
         else:
             # production
-            self.DEBUG = True
+            self.DEBUG = False
 
 def _get_domain(host: str) -> str:
     return host.split("//")[1].split(":")[0]
