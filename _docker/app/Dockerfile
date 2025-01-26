@@ -32,11 +32,22 @@ ARG AWS_SECRET_NAME
 ARG CLIENT_HOST
 ARG SECRET_KEY
 
+# DB
+ARG DB_NAME
+ARG DB_HOST
+ARG DB_USER
+ARG DB_PASS
+
 ENV STAGE $STAGE
 ENV AWS_REGION $AWS_REGION
 ENV AWS_SECRET_NAME $AWS_SECRET_NAME
 ENV CLIENT_HOST $CLIENT_HOST
 ENV SECRET_KEY $SECRET_KEY
+
+ENV DB_NAME $DB_NAME
+ENV DB_HOST $DB_HOST
+ENV DB_USER $DB_USER
+ENV DB_PASS $DB_PASS
 
 # migrate database
 RUN (python manage.py makemigrations && python manage.py migrate --noinput) || echo "Migrations already applied or not necessary."
