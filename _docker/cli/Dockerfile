@@ -5,7 +5,8 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y build-essential curl unzip less && \
+    apt-get install -y build-essential curl unzip less \
+    default-libmysqlclient-dev build-essential pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
