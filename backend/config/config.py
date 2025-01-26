@@ -50,7 +50,7 @@ class _Config:
             self.DEBUG = True
         else:
             # production
-            self.DEBUG = False
+            self.DEBUG = True
 
 def _get_domain(host: str) -> str:
     return host.split("//")[1].split(":")[0]
