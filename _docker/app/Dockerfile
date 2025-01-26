@@ -8,6 +8,7 @@ WORKDIR $APP_ROOT
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl nginx supervisor build-essential gcc \
+    default-libmysqlclient-dev build-essential pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./backend/requirements.txt $APP_ROOT/requirements.txt
@@ -50,8 +51,7 @@ ENV DB_USER $DB_USER
 ENV DB_PASS $DB_PASS
 
 # migrate database
-RUN (python manage.py makemigrations && python manage.py migrate --noinput) || echo "Migrations already applied or not necessary."
-RUN chown nobody:nogroup $APP_ROOT/db/db.sqlite3
+RUN (python manage.py makemigrations) || echo "No migrations to apply"
 
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
