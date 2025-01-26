@@ -8,6 +8,7 @@ WORKDIR $APP_ROOT
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl nginx supervisor build-essential gcc \
+    default-libmysqlclient-dev build-essential pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./backend/requirements.txt $APP_ROOT/requirements.txt
@@ -32,15 +33,22 @@ ARG AWS_SECRET_NAME
 ARG CLIENT_HOST
 ARG SECRET_KEY
 
+# DB
+ARG DB_NAME
+ARG DB_HOST
+ARG DB_USER
+ARG DB_PASS
+
 ENV STAGE $STAGE
 ENV AWS_REGION $AWS_REGION
 ENV AWS_SECRET_NAME $AWS_SECRET_NAME
 ENV CLIENT_HOST $CLIENT_HOST
 ENV SECRET_KEY $SECRET_KEY
 
-# migrate database
-RUN (python manage.py makemigrations && python manage.py migrate --noinput) || echo "Migrations already applied or not necessary."
-RUN chown nobody:nogroup $APP_ROOT/db/db.sqlite3
+ENV DB_NAME $DB_NAME
+ENV DB_HOST $DB_HOST
+ENV DB_USER $DB_USER
+ENV DB_PASS $DB_PASS
 
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
@@ -50,4 +58,4 @@ RUN set -x && unitd \
 
 EXPOSE 8002
 
-CMD ["supervisord", "--nodaemon", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate; supervisord --nodaemon -c /etc/supervisor/supervisord.conf"]
