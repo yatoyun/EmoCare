@@ -42,6 +42,9 @@ services:
       - ./backend/.env
     volumes:
       - ./backend:/usr/src/app
+    depends_on:
+      - db
+      - localstack
 
   cli:
     build:
@@ -84,7 +87,6 @@ services:
       - default
     volumes:
       - ./volume/db:/var/lib/mysql
-
 
 networks:
   default:

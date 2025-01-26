@@ -50,9 +50,6 @@ ENV DB_HOST $DB_HOST
 ENV DB_USER $DB_USER
 ENV DB_PASS $DB_PASS
 
-# migrate database
-RUN (python manage.py makemigrations) || echo "No migrations to apply"
-
 COPY ./backend/config.json /tmp/config.json
 RUN set -x && unitd \
     && curl -X PUT -d @/tmp/config.json \
@@ -61,4 +58,4 @@ RUN set -x && unitd \
 
 EXPOSE 8002
 
-CMD ["supervisord", "--nodaemon", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate; supervisord --nodaemon -c /etc/supervisor/supervisord.conf"]
