@@ -1,8 +1,11 @@
-name: CD
+name: Backend Workflow
 
 on:
   push:
-    branches: [ main, test ]
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '_docker/app/**'
   workflow_dispatch:
 
 jobs:

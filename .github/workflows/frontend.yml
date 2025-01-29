@@ -1,9 +1,11 @@
-name: CI
+name: Frontend Workflow
 
 # trigger
 on:
   push:
-    branches: [ main, test ]
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
 
 jobs:
   build:
