@@ -77,11 +77,6 @@ jobs:
         run: |
           aws autoscaling update-auto-scaling-group --auto-scaling-group-name $ASG_NAME --min-size 2 --desired-capacity 2
 
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition --task-definition emocareTaskDefinition \
-            --query taskDefinition > task-definition.json
-
       - name: Deploy to Amazon ECS service
         run: |
           aws ecs update-service \
