@@ -10,7 +10,6 @@ google-cloud-language==2.11.1
 Pillow==10.1.0
 scipy==1.11.4
 zxcvbn==4.4.28
-gunicorn==21.2.0
 boto3==1.35.95
 mysqlclient==2.2.7
 django-redis==5.4.0
