@@ -26,7 +26,7 @@ function Statistics() {
           <h3 className="text-lg font-semibold text-red-800">Error loading statistics</h3>
           <p className="text-red-600">{error.message}</p>
           {error.cause && (
-            <pre className="mt-2 text-sm text-red-500 bg-red-50 p-2 rounded">
+            <pre className="mt-2 text-sm text-red-500 bg-red-50 p-2 rounded-sm">
               {JSON.stringify(error.cause, null, 2)}
             </pre>
           )}
