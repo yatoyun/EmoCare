@@ -16,7 +16,7 @@ jobs:
     steps:
       # 1. Checkout the code
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 3. Configure AWS credentials
       - name: Configure AWS credentials
@@ -28,7 +28,7 @@ jobs:
 
       # 4. Setup Python for awscli
       - name: Setup Python for AWS CLI
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
           architecture: 'x64'
@@ -39,7 +39,7 @@ jobs:
       # 5. Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       # 6. Build, tag, and push DRF image to Amazon ECR
       - name: Build, tag, and push DRF image to Amazon ECR

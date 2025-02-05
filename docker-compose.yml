@@ -39,8 +39,6 @@ services:
       - AWS_ACCESS_KEY_ID=dummy
       - AWS_SECRET_ACCESS_KEY=dummy
       - AWS_DEFAULT_REGION=ap-northeast-1
-    env_file:
-      - ./backend/.env
     volumes:
       - ./backend:/usr/src/app
     depends_on:
@@ -66,8 +64,6 @@ services:
       - DB_PASS=test
       - DB_HOST=db
       - CACHELOCATION=redis://redis:6379/1
-    env_file:
-      - ./backend/.env
     volumes:
       - .:/app
     tty: true

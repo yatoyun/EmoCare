@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { useNotifications } from '@/components/ui/notifications-store';
+import { paths } from '@/configs/paths';
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL}/api`,
@@ -20,6 +22,30 @@ api.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// Handle API errors
+api.interceptors.response.use(
+  (response) => {
+    return response.data;
+  },
+  (error) => {
+    const message = error.response?.data?.message || error.message;
+    useNotifications.getState().addNotification({
+      type: 'error',
+      title: 'Error',
+      message,
+    });
+
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const searchParams = new URLSearchParams();
+      const redirectTo =
+        searchParams.get('redirectTo') || window.location.pathname;
+      window.location.href = paths.login.getHref(redirectTo);
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 // Helper function to get CSRF token from cookies
 function getCsrfTokenFromCookies() {
