@@ -8,18 +8,18 @@ import { cn } from '@/utils/cn';
 import { Spinner } from '../spinner';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
         default:
-          'bg-orange-500 text-white shadow hover:bg-orange-600 active:bg-orange-700',
+          'bg-orange-500 text-white shadow-sm hover:bg-orange-600 active:bg-orange-700',
         destructive:
-          'bg-red-500 text-white shadow-sm hover:bg-red-600',
+          'bg-red-500 text-white shadow-xs hover:bg-red-600',
         outline:
-          'border border-gray-300 bg-white shadow-sm hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600',
+          'border border-gray-300 bg-white shadow-xs hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600',
         secondary:
-          'bg-orange-100 text-orange-900 shadow-sm hover:bg-orange-200',
+          'bg-orange-100 text-orange-900 shadow-xs hover:bg-orange-200',
         ghost: 'hover:bg-orange-50 hover:text-orange-600',
         link: 'text-orange-600 underline-offset-4 hover:underline',
       },

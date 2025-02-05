@@ -18,7 +18,7 @@ export const ChatInput = ({ onSendMessage, isLoading }) => {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="flex-grow px-3 py-2 border rounded-l"
+        className="grow px-3 py-2 border rounded-l"
         placeholder="Type your message..."
         disabled={isLoading}
       />
