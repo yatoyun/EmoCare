@@ -20,6 +20,10 @@ export const RegisterForm = ({
         message: 'Registration failed',
         duration: 3000
       });
+      const pwInput = document.querySelector('input[name="password"]');
+      if (pwInput) {
+        pwInput.value = '';
+      }
     },
     retry: false,
     useErrorBoundary: false,

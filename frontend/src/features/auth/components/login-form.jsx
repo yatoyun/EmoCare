@@ -18,6 +18,10 @@ export const LoginForm = ({ onSuccess }) => {
         message: 'Login failed',
         duration: 3000
       });
+      const pwInput = document.querySelector('input[name="password"]');
+      if (pwInput) {
+        pwInput.value = '';
+      }
     },
     retry: false,
     useErrorBoundary: false,
