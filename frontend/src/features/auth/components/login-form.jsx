@@ -1,14 +1,30 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/components/ui/notifications-store';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/configs/paths';
 import { useLogin, loginInputSchema } from '@/lib/auth';
 
 export const LoginForm = ({ onSuccess }) => {
+  const { addNotification } = useNotifications();
   const login = useLogin({
     onSuccess,
+    onError: () => {
+      addNotification({
+        type: 'error',
+        title: 'Login Failed',
+        message: 'Login failed',
+        duration: 3000
+      });
+      const pwInput = document.querySelector('input[name="password"]');
+      if (pwInput) {
+        pwInput.value = '';
+      }
+    },
+    retry: false,
+    useErrorBoundary: false,
   });
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
@@ -20,6 +36,9 @@ export const LoginForm = ({ onSuccess }) => {
           login.mutate(values);
         }}
         schema={loginInputSchema}
+        options={{
+          shouldUnregister: true,
+        }}
       >
         {({ register, formState }) => (
           <>

@@ -7,16 +7,9 @@ const icons = {
   warning: (
     <CircleAlert className="size-6 text-yellow-500" aria-hidden="true" />
   ),
-};
-
-Notification.propTypes = {
-  notification: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    type: PropTypes.oneOf(['info', 'success', 'warning', 'error']).isRequired,
-    title: PropTypes.string.isRequired,
-    message: PropTypes.string.isRequired,
-  }).isRequired,
-  onDismiss: PropTypes.func.isRequired,
+  error: (
+    <CircleX className="size-6 text-red-500" aria-hidden="true" />
+  ),
 };
 
 export const Notification = ({
@@ -49,4 +42,14 @@ export const Notification = ({
       </div>
     </div>
   );
+};
+
+Notification.propTypes = {
+  notification: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.oneOf(['info', 'success', 'warning', 'error']).isRequired,
+    title: PropTypes.string.isRequired,
+    message: PropTypes.string.isRequired,
+  }).isRequired,
+  onDismiss: PropTypes.func.isRequired,
 };
