@@ -11,11 +11,11 @@ export const LoginForm = ({ onSuccess }) => {
   const { addNotification } = useNotifications();
   const login = useLogin({
     onSuccess,
-    onError: (error) => {
+    onError: () => {
       addNotification({
         type: 'error',
         title: 'Login Failed',
-        message: error?.message || 'Failed to login. Please check your credentials.',
+        message: 'Login failed',
         duration: 3000
       });
     },
@@ -32,6 +32,9 @@ export const LoginForm = ({ onSuccess }) => {
           login.mutate(values);
         }}
         schema={loginInputSchema}
+        options={{
+          shouldUnregister: true,
+        }}
       >
         {({ register, formState }) => (
           <>

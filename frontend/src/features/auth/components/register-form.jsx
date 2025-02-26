@@ -13,11 +13,11 @@ export const RegisterForm = ({
   const { addNotification } = useNotifications();
   const registering = useRegister({
     onSuccess,
-    onError: (error) => {
+    onError: () => {
       addNotification({
         type: 'error',
         title: 'Registration Failed',
-        message: error?.message || 'Failed to register. Please try again.',
+        message: 'Registration failed',
         duration: 3000
       });
     },
