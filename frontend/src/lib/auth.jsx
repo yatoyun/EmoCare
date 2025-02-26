@@ -23,9 +23,9 @@ export const loginInputSchema = z.object({
 	password: z.string().min(4, "Required"),
 });
 
-const loginWithEmailAndPassword = (data) => {
+const loginWithEmailAndPassword = async (data) => {
 	const validatedData = loginInputSchema.parse(data);
-	return api.post("login/", validatedData);
+  return await api.post("login/", validatedData);
 };
 
 export const registerInputSchema = z.object({
@@ -34,26 +34,20 @@ export const registerInputSchema = z.object({
 	password: z.string().min(4, "Required"),
 });
 
-const registerWithEmailAndPassword = (data) => {
+const registerWithEmailAndPassword = async (data) => {
 	const validatedData = registerInputSchema.parse(data);
-	return api.post("register/", validatedData);
+  return await api.post("register/", validatedData);
 };
 
 const authConfig = {
 	userFn: getUser,
 	loginFn: async (data) => {
 		await loginWithEmailAndPassword(data);
-
-		// ユーザー情報を明示的に取得して更新
-		const userResponse = await getUser();
-		return userResponse;
+		return await getUser();
 	},
 	registerFn: async (data) => {
 		await registerWithEmailAndPassword(data);
-
-		// ユーザー情報を明示的に取得して更新
-		const userResponse = await getUser();
-		return userResponse;
+		return await getUser();
 	},
 	logoutFn: logout,
 };
