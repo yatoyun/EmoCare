@@ -45,7 +45,7 @@ class RegisterView(APIView):
         except ValueError as e:
             logger.error(f"Registration failed: {repr(e)}")
             return Response({
-                'detail': str(e),
+                'detail': "Registration failed. Change name or email",
                 'error_type': 'registration_error'
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,7 +77,7 @@ class LoginView(APIView):
         except ValueError as e:
             logger.error(f"Login failed: {repr(e)}")
             return Response({
-                'detail': str(e),
+                'detail': "username or password is incorrect",
                 'error_type': 'authentication_error'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
