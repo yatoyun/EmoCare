@@ -1,7 +1,8 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/components/ui/notifications-store';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/configs/paths';
 import { useRegister, registerInputSchema } from '@/lib/auth';
@@ -9,7 +10,24 @@ import { useRegister, registerInputSchema } from '@/lib/auth';
 export const RegisterForm = ({
   onSuccess,
 }) => {
-  const registering = useRegister({ onSuccess });
+  const { addNotification } = useNotifications();
+  const registering = useRegister({
+    onSuccess,
+    onError: () => {
+      addNotification({
+        type: 'error',
+        title: 'Registration Failed',
+        message: 'Registration failed',
+        duration: 3000
+      });
+      const pwInput = document.querySelector('input[name="password"]');
+      if (pwInput) {
+        pwInput.value = '';
+      }
+    },
+    retry: false,
+    useErrorBoundary: false,
+  });
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
 

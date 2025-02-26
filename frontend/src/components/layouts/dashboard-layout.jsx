@@ -1,6 +1,6 @@
 import { MessageCircleMore, PanelLeft, ChartColumnIncreasing, User2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useNavigation } from 'react-router';
+import { NavLink, useNavigate, useNavigation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/ui/button';

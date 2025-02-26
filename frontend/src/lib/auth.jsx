@@ -1,5 +1,5 @@
 import { configureAuth } from "react-query-auth";
-import { Navigate, useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router-dom";
 import { z } from "zod";
 import PropTypes from "prop-types";
 
@@ -23,32 +23,31 @@ export const loginInputSchema = z.object({
 	password: z.string().min(4, "Required"),
 });
 
-const loginWithEmailAndPassword = (data) => {
+const loginWithEmailAndPassword = async (data) => {
 	const validatedData = loginInputSchema.parse(data);
-	return api.post("login/", validatedData);
+  return await api.post("login/", validatedData);
 };
 
-export const registerInputSchema = z
-	.object({
-    name: z.string().min(1, "Required"),
-		email: z.string().min(1, "Required"),
-		password: z.string().min(4, "Required"),
-	});
+export const registerInputSchema = z.object({
+	name: z.string().min(1, "Required"),
+	email: z.string().min(1, "Required"),
+	password: z.string().min(4, "Required"),
+});
 
-const registerWithEmailAndPassword = (data) => {
+const registerWithEmailAndPassword = async (data) => {
 	const validatedData = registerInputSchema.parse(data);
-	return api.post("register/", validatedData);
+  return await api.post("register/", validatedData);
 };
 
 const authConfig = {
 	userFn: getUser,
 	loginFn: async (data) => {
-		const response = await loginWithEmailAndPassword(data);
-		return response.user;
+		await loginWithEmailAndPassword(data);
+		return await getUser();
 	},
 	registerFn: async (data) => {
-		const response = await registerWithEmailAndPassword(data);
-		return response.user;
+		await registerWithEmailAndPassword(data);
+		return await getUser();
 	},
 	logoutFn: logout,
 };
@@ -57,7 +56,7 @@ export const { useUser, useLogin, useLogout, useRegister } =
 	configureAuth(authConfig);
 
 export const ProtectedRoute = ({ children }) => {
-	const { data, isLoading } = useUser();
+	const { data: user, isLoading } = useUser();
 	const location = useLocation();
 
 	if (isLoading) {
@@ -68,10 +67,9 @@ export const ProtectedRoute = ({ children }) => {
 		);
 	}
 
-	if (!data) {
-		return (
-			<Navigate to={paths.login.getHref(location.pathname)} replace />
-		);
+	if (!user) {
+		const loginPath = paths.login.getHref(location.pathname);
+		return <Navigate to={loginPath} replace />;
 	}
 
 	return children;

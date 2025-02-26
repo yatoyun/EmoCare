@@ -52,7 +52,6 @@ const getStatistics = async () => {
   try {
     const response = await api.get('statistics/');
 
-    console.log('Statistics API response:', response);
     const validated = statisticsResponseSchema.safeParse(response);
     if (!validated.success) {
       console.error('Validation errors:', validated.error);

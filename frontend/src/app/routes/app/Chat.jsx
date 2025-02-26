@@ -35,7 +35,6 @@ function Chat() {
       createChat.mutate({ data: { message } });
     }
   };
-  console.log(createChat.isPending)
 
   return (
     <Container>
