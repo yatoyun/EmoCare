@@ -77,7 +77,7 @@ class LoginView(APIView):
         except ValueError as e:
             logger.error(f"Login failed: {repr(e)}")
             return Response({
-                'detail': str(e),
+                'detail': "username or password is incorrect",
                 'error_type': 'authentication_error'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
