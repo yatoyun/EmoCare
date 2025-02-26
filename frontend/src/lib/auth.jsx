@@ -28,12 +28,11 @@ const loginWithEmailAndPassword = (data) => {
 	return api.post("login/", validatedData);
 };
 
-export const registerInputSchema = z
-	.object({
-    name: z.string().min(1, "Required"),
-		email: z.string().min(1, "Required"),
-		password: z.string().min(4, "Required"),
-	});
+export const registerInputSchema = z.object({
+	name: z.string().min(1, "Required"),
+	email: z.string().min(1, "Required"),
+	password: z.string().min(4, "Required"),
+});
 
 const registerWithEmailAndPassword = (data) => {
 	const validatedData = registerInputSchema.parse(data);
@@ -43,12 +42,18 @@ const registerWithEmailAndPassword = (data) => {
 const authConfig = {
 	userFn: getUser,
 	loginFn: async (data) => {
-		const response = await loginWithEmailAndPassword(data);
-		return response.user;
+		await loginWithEmailAndPassword(data);
+
+		// ユーザー情報を明示的に取得して更新
+		const userResponse = await getUser();
+		return userResponse;
 	},
 	registerFn: async (data) => {
-		const response = await registerWithEmailAndPassword(data);
-		return response.user;
+		await registerWithEmailAndPassword(data);
+
+		// ユーザー情報を明示的に取得して更新
+		const userResponse = await getUser();
+		return userResponse;
 	},
 	logoutFn: logout,
 };
@@ -57,7 +62,7 @@ export const { useUser, useLogin, useLogout, useRegister } =
 	configureAuth(authConfig);
 
 export const ProtectedRoute = ({ children }) => {
-	const { data, isLoading } = useUser();
+	const { data: user, isLoading } = useUser();
 	const location = useLocation();
 
 	if (isLoading) {
@@ -68,10 +73,9 @@ export const ProtectedRoute = ({ children }) => {
 		);
 	}
 
-	if (!data) {
-		return (
-			<Navigate to={paths.login.getHref(location.pathname)} replace />
-		);
+	if (!user) {
+		const loginPath = paths.login.getHref(location.pathname);
+		return <Navigate to={loginPath} replace />;
 	}
 
 	return children;
