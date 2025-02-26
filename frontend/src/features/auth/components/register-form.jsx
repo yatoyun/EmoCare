@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/components/ui/notifications-store';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/configs/paths';
 import { useRegister, registerInputSchema } from '@/lib/auth';
@@ -9,7 +10,20 @@ import { useRegister, registerInputSchema } from '@/lib/auth';
 export const RegisterForm = ({
   onSuccess,
 }) => {
-  const registering = useRegister({ onSuccess });
+  const { addNotification } = useNotifications();
+  const registering = useRegister({
+    onSuccess,
+    onError: (error) => {
+      addNotification({
+        type: 'error',
+        title: 'Registration Failed',
+        message: error?.message || 'Failed to register. Please try again.',
+        duration: 3000
+      });
+    },
+    retry: false,
+    useErrorBoundary: false,
+  });
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
 

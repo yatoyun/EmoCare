@@ -2,13 +2,25 @@ import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/components/ui/notifications-store';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/configs/paths';
 import { useLogin, loginInputSchema } from '@/lib/auth';
 
 export const LoginForm = ({ onSuccess }) => {
+  const { addNotification } = useNotifications();
   const login = useLogin({
     onSuccess,
+    onError: (error) => {
+      addNotification({
+        type: 'error',
+        title: 'Login Failed',
+        message: error?.message || 'Failed to login. Please check your credentials.',
+        duration: 3000
+      });
+    },
+    retry: false,
+    useErrorBoundary: false,
   });
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');

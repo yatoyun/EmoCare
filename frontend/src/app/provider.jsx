@@ -4,6 +4,7 @@ import * as React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { MainErrorFallback } from "@/components/errors/main";
+import { Notifications } from "@/components/ui/notifications";
 import { Spinner } from "@/components/spinner";
 import { queryConfig } from "@/lib/react-query";
 
@@ -25,6 +26,7 @@ const AppProvider = ({ children }) => {
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
         <QueryClientProvider client={queryClient}>
           {import.meta.env.DEV && <ReactQueryDevtools />}
+          <Notifications />
           {children}
         </QueryClientProvider>
       </ErrorBoundary>
