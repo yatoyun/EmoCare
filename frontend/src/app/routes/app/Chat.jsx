@@ -30,6 +30,11 @@ function Chat() {
         {
           role: 'user',
           content: message,
+        },
+        {
+          role: 'gpt',
+          content: 'AI is typing...',
+          isLoading: true,
         }
       ]);
       createChat.mutate({ data: { message } });
