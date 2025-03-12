@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Container } from '@/components/ui/container';
 import { Card } from '@/components/ui/card';
 
@@ -9,30 +8,53 @@ import { useGetChatHistory } from '@/features/chat/api/get-chat-history';
 import { useCreateChat } from '@/features/chat/api/create-chat';
 
 function Chat() {
-  const queryClient = useQueryClient();
-  const [localMessages, setLocalMessages] = useState([]);
   const { data: serverMessages = [] } = useGetChatHistory();
-  const messages = [...serverMessages, ...localMessages];
+  const [pendingMessages, setPendingMessages] = useState([]);
+  const messages = [...serverMessages, ...pendingMessages];
 
   const createChat = useCreateChat({
     mutationConfig: {
-      onSuccess: () => {
-        setLocalMessages([]);
-        queryClient.invalidateQueries(['chat-history']);
+      onSuccess: (response) => {
+        // 保留中のメッセージを更新
+        setPendingMessages(prevMessages => {
+          if (!response) {
+            // エラー時は保留中のメッセージを削除
+            return prevMessages.filter(msg => !msg.isLoading);
+          }
+
+          const updatedMessages = prevMessages.map(msg => {
+            if (msg.isLoading) {
+              return {
+                role: 'gpt',
+                content: response,
+              };
+            }
+            return msg;
+          });
+          return updatedMessages;
+        });
       },
     },
   });
 
   const handleSendMessage = (message) => {
     if (message.trim()) {
-      // 即座にユーザーメッセージを表示
-      setLocalMessages([
+      // 保留中のメッセージを追加
+      setPendingMessages([
+        ...pendingMessages,
         {
           role: 'user',
           content: message,
+        },
+        {
+          role: 'gpt',
+          content: 'AI is typing...',
+          isLoading: true,
         }
       ]);
-      createChat.mutate({ data: { message } });
+      createChat.mutate({
+        data: { message }
+      });
     }
   };
 
