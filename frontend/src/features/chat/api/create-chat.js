@@ -12,7 +12,7 @@ export const createChat = async ({
   data,
 }) => {
   const response = await api.post(`chat/`, data);
-  return response.data;
+  return response.gpt_response;
 };
 
 export const useCreateChat = ({
